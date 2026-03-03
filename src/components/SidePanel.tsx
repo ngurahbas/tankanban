@@ -49,8 +49,8 @@ export default function SidePanel({ boards, isOpen, onClose, onBoardCreated }: S
 
       {/* Side Panel */}
       <aside
-        className={`fixed bottom-16 left-0 right-0 z-40 border-t border-[var(--line)] bg-[var(--header-bg)] transition-transform duration-300 ease-in-out sm:bottom-0 sm:left-16 sm:right-auto sm:top-0 sm:w-64 sm:border-t-0 sm:border-r ${
-          isOpen ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:translate-y-0 sm:-translate-x-full'
+        className={`fixed top-0 bottom-16 right-0 z-40 w-64 border-l border-[var(--line)] bg-[var(--header-bg)] transition-transform duration-300 ease-in-out sm:bottom-0 sm:left-0 sm:right-auto sm:top-16 sm:border-l-0 sm:border-r ${
+          isOpen ? 'translate-x-0 sm:translate-x-0' : 'translate-x-full sm:-translate-x-full'
         }`}
       >
         <div className="flex h-full flex-col p-4">

@@ -37,7 +37,7 @@ function KanbanPage() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 pt-16 sm:pl-16 sm:pt-0">
+      <main className="flex-1 pb-16 pt-4 sm:pb-0 sm:pt-16">
         <div className="flex h-full items-center justify-center px-4">
           <div className="text-center">
             <h1 className="mb-4 text-3xl font-bold text-[var(--sea-ink)]">
