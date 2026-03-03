@@ -8,11 +8,20 @@ fields:
 - name
 - created_at
 - updated_at
+### Kanban Column
+table name: kanban_column
+fields: 
+- id: primary key
+- kanban_board_id: indexed, foreign key referencing kanban_board.id
+- name
+- created_at
+- updated_at
 ### Kanban Card
 table name: kanban_card
 fields: 
 - id: primary key
-- kanban_board_id: foreign key referencing kanban_board.id
+- kanban_board_id: indexed, foreign key referencing kanban_board.id
+- kanban_column_id: indexed, foreign key referencing kanban_column.id
 - name
 - description
 - created_at
