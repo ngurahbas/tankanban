@@ -6,6 +6,7 @@ table name: kanban_board
 fields: 
 - id: primary key
 - name
+- columns_order: text, comma-separated column ids
 - created_at
 - updated_at
 ### Kanban Column
@@ -23,7 +24,7 @@ fields:
 - kanban_board_id: indexed, foreign key referencing kanban_board.id
 - kanban_column_id: indexed, foreign key referencing kanban_column.id
 - name
-- description
+- description: nullable
 - created_at
 - updated_at
 ## UI Components
@@ -42,6 +43,23 @@ Side Panel component is placed on the left side for desktop and right side for m
   - New Kanban Board Name field
   - Submit button
   - Cancel button
+### Kanban Board View
+- *Kanban Board Title*
+  - Editable title field
+- *Kanban Columns*
+  - Drag-and-drop reordering of columns
+  - Add Column button
+  - Add Card button to show a form for adding a new card
+- *Kanban Cards*
+  - Drag-and-drop reordering of cards within columns
+  - Editable card title and description fields
 ## Pages
 - /kanban
+  contains:
+  - Main Panel
+  - Side Panel
 - /kanban/{kanban_id}
+  contains:
+  - Main Panel
+  - Side Panel
+  - Kanban Board View of selected kanban_id
