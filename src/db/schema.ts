@@ -10,3 +10,17 @@ export const todos = sqliteTable('todos', {
     sql`(unixepoch())`,
   ),
 })
+
+export const kanbanBoard = sqliteTable('kanban_board', {
+  id: integer({ mode: 'number' }).primaryKey({
+    autoIncrement: true,
+  }),
+  name: text().notNull(),
+  columnsOrder: text('columns_order'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(
+    sql`(unixepoch())`,
+  ),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).default(
+    sql`(unixepoch())`,
+  ),
+})
