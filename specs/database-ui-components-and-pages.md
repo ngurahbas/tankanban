@@ -58,6 +58,7 @@ Side Panel component is placed on the left side for desktop and right side for m
   contains:
   - Main Panel
   - Side Panel
+  - A Main View with text to tell the user to create a new board
 - /kanban/{kanban_id}
   contains:
   - Main Panel
