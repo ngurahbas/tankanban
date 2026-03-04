@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { Plus, X } from 'lucide-react'
 import type { kanbanBoard } from '../db/schema.ts'
 
@@ -10,6 +11,7 @@ interface SidePanelProps {
 }
 
 export default function SidePanel({ boards, isOpen, onClose, onBoardCreated }: SidePanelProps) {
+  const navigate = useNavigate()
   const [showAddForm, setShowAddForm] = useState(false)
   const [newBoardName, setNewBoardName] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -21,10 +23,12 @@ export default function SidePanel({ boards, isOpen, onClose, onBoardCreated }: S
     setIsSubmitting(true)
     try {
       const { createBoard } = await import('../lib/kanban.ts')
-      await createBoard({ data: newBoardName.trim() })
+      const board = await createBoard({ data: newBoardName.trim() })
       setNewBoardName('')
       setShowAddForm(false)
       onBoardCreated()
+      navigate({ to: '/kanban/$kanbanId', params: { kanbanId: String(board.id) } })
+      onClose()
     } catch (error) {
       console.error('Failed to create board:', error)
     } finally {
@@ -62,13 +66,15 @@ export default function SidePanel({ boards, isOpen, onClose, onBoardCreated }: S
               <p className="text-sm text-[var(--sea-ink-soft)]">No boards yet</p>
             ) : (
               boards.map((board) => (
-                <button
+                <Link
                   key={board.id}
+                  to="/kanban/$kanbanId"
+                  params={{ kanbanId: String(board.id) }}
                   className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[var(--sea-ink)] transition hover:bg-[var(--link-bg-hover)]"
                   onClick={onClose}
                 >
                   {board.name}
-                </button>
+                </Link>
               ))
             )}
           </div>

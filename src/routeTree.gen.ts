@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as KanbanRouteImport } from './routes/kanban'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as KanbanIndexRouteImport } from './routes/kanban/index'
+import { Route as KanbanKanbanIdRouteImport } from './routes/kanban.$kanbanId'
 
 const KanbanRoute = KanbanRouteImport.update({
   id: '/kanban',
@@ -28,35 +30,50 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KanbanIndexRoute = KanbanIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => KanbanRoute,
+} as any)
+const KanbanKanbanIdRoute = KanbanKanbanIdRouteImport.update({
+  id: '/$kanbanId',
+  path: '/$kanbanId',
+  getParentRoute: () => KanbanRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/kanban': typeof KanbanRoute
+  '/kanban': typeof KanbanRouteWithChildren
+  '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
+  '/kanban/': typeof KanbanIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/kanban': typeof KanbanRoute
+  '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
+  '/kanban': typeof KanbanIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/kanban': typeof KanbanRoute
+  '/kanban': typeof KanbanRouteWithChildren
+  '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
+  '/kanban/': typeof KanbanIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/kanban'
+  fullPaths: '/' | '/about' | '/kanban' | '/kanban/$kanbanId' | '/kanban/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/kanban'
-  id: '__root__' | '/' | '/about' | '/kanban'
+  to: '/' | '/about' | '/kanban/$kanbanId' | '/kanban'
+  id: '__root__' | '/' | '/about' | '/kanban' | '/kanban/$kanbanId' | '/kanban/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  KanbanRoute: typeof KanbanRoute
+  KanbanRoute: typeof KanbanRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -82,13 +99,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kanban/': {
+      id: '/kanban/'
+      path: '/'
+      fullPath: '/kanban/'
+      preLoaderRoute: typeof KanbanIndexRouteImport
+      parentRoute: typeof KanbanRoute
+    }
+    '/kanban/$kanbanId': {
+      id: '/kanban/$kanbanId'
+      path: '/$kanbanId'
+      fullPath: '/kanban/$kanbanId'
+      preLoaderRoute: typeof KanbanKanbanIdRouteImport
+      parentRoute: typeof KanbanRoute
+    }
   }
 }
+
+interface KanbanRouteChildren {
+  KanbanKanbanIdRoute: typeof KanbanKanbanIdRoute
+  KanbanIndexRoute: typeof KanbanIndexRoute
+}
+
+const KanbanRouteChildren: KanbanRouteChildren = {
+  KanbanKanbanIdRoute: KanbanKanbanIdRoute,
+  KanbanIndexRoute: KanbanIndexRoute,
+}
+
+const KanbanRouteWithChildren =
+  KanbanRoute._addFileChildren(KanbanRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  KanbanRoute: KanbanRoute,
+  KanbanRoute: KanbanRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
