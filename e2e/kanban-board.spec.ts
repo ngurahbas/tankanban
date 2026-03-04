@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { createBoard, createColumn, createCard } from './test-helpers'
 
 test.describe('Kanban Board View', () => {
   test.beforeEach(async ({ page }) => {
@@ -6,101 +7,49 @@ test.describe('Kanban Board View', () => {
   })
 
   test('should create a new board and navigate to it', async ({ page }) => {
-    await page.click('button:has-text("Create New Board")')
+    await createBoard(page, 'Test Board')
     
-    await page.waitForSelector('text=Kanban Boards')
-    
-    await page.click('button:has-text("Add")')
-    await page.fill('input[placeholder="New board name"]', 'Test Board')
-    await page.click('button:has-text("Create")')
-    
-    await page.waitForSelector('button:has-text("Test Board")')
-    
-    await page.click('button:has-text("Test Board")')
-    
-    await expect(page).toHaveURL(/\/kanban\/\d+/)
-    await expect(page.locator('text=Test Board')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Test Board' })).toBeVisible()
   })
 
   test('should add columns to a board', async ({ page }) => {
-    await page.click('button:has-text("Create New Board")')
-    await page.waitForSelector('text=Kanban Boards')
-    await page.click('button:has-text("Add")')
-    await page.fill('input[placeholder="New board name"]', 'Board with Columns')
-    await page.click('button:has-text("Create")')
-    await page.waitForSelector('button:has-text("Board with Columns")')
-    await page.click('button:has-text("Board with Columns")')
+    await createBoard(page, 'Board with Columns')
     
-    await page.click('button:has-text("Add Column")')
-    await page.fill('input[placeholder="Column name"]', 'To Do')
-    await page.click('button:has-text("Add")')
-    
-    await expect(page.locator('text=To Do')).toBeVisible()
-    
-    await page.click('button:has-text("Add Column")')
-    await page.fill('input[placeholder="Column name"]', 'In Progress')
-    await page.click('button:has-text("Add")')
-    
-    await expect(page.locator('text=In Progress')).toBeVisible()
+    await createColumn(page, 'To Do')
+    await createColumn(page, 'In Progress')
   })
 
   test('should add cards to a column', async ({ page }) => {
-    await page.click('button:has-text("Create New Board")')
-    await page.waitForSelector('text=Kanban Boards')
-    await page.click('button:has-text("Add")')
-    await page.fill('input[placeholder="New board name"]', 'Board with Cards')
-    await page.click('button:has-text("Create")')
-    await page.waitForSelector('button:has-text("Board with Cards")')
-    await page.click('button:has-text("Board with Cards")')
-    
-    await page.click('button:has-text("Add Column")')
-    await page.fill('input[placeholder="Column name"]', 'Tasks')
-    await page.click('button:has-text("Add")')
-    
-    await page.click('button:has-text("Add Card")')
-    await page.fill('input[placeholder="Card name"]', 'First Task')
-    await page.click('button:has-text("Add")')
-    
-    await expect(page.locator('text=First Task')).toBeVisible()
+    await createBoard(page, 'Board with Cards')
+    await createColumn(page, 'Tasks')
+    await createCard(page, 'First Task')
   })
 
   test('should edit board title inline', async ({ page }) => {
-    await page.click('button:has-text("Create New Board")')
-    await page.waitForSelector('text=Kanban Boards')
-    await page.click('button:has-text("Add")')
-    await page.fill('input[placeholder="New board name"]', 'Editable Board')
-    await page.click('button:has-text("Create")')
-    await page.waitForSelector('button:has-text("Editable Board")')
-    await page.click('button:has-text("Editable Board")')
+    await createBoard(page, 'Editable Board')
     
-    await page.click('text=Editable Board')
-    await page.fill('input', 'Updated Board Name')
-    await page.press('input', 'Enter')
+    const boardTitle = page.getByRole('button', { name: 'Editable Board' })
+    await boardTitle.click()
     
-    await expect(page.locator('text=Updated Board Name')).toBeVisible()
+    const input = page.getByRole('textbox')
+    await input.fill('Updated Board Name')
+    await input.press('Enter')
+    
+    await expect(page.getByRole('button', { name: 'Updated Board Name' })).toBeVisible()
   })
 
   test('should edit card description', async ({ page }) => {
-    await page.click('button:has-text("Create New Board")')
-    await page.waitForSelector('text=Kanban Boards')
-    await page.click('button:has-text("Add")')
-    await page.fill('input[placeholder="New board name"]', 'Board for Card Description')
-    await page.click('button:has-text("Create")')
-    await page.waitForSelector('button:has-text("Board for Card Description")')
-    await page.click('button:has-text("Board for Card Description")')
+    await createBoard(page, 'Board for Card Description')
+    await createColumn(page, 'Column')
+    await createCard(page, 'Card with Description')
     
-    await page.click('button:has-text("Add Column")')
-    await page.fill('input[placeholder="Column name"]', 'Column')
-    await page.click('button:has-text("Add")')
+    const addDescriptionPlaceholder = page.getByText('Add description...')
+    await addDescriptionPlaceholder.click()
     
-    await page.click('button:has-text("Add Card")')
-    await page.fill('input[placeholder="Card name"]', 'Card with Description')
-    await page.click('button:has-text("Add")')
+    const textarea = page.getByRole('textbox')
+    await textarea.fill('This is a detailed description')
+    await textarea.blur()
     
-    await page.click('text=Add description...')
-    await page.fill('textarea', 'This is a detailed description')
-    await page.press('textarea', 'Escape')
-    
-    await expect(page.locator('text=This is a detailed description')).toBeVisible()
+    await expect(page.getByText('This is a detailed description')).toBeVisible()
   })
 })

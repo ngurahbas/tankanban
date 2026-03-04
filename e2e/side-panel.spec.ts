@@ -1,43 +1,31 @@
 import { test, expect } from '@playwright/test'
+import { openSidePanel } from './test-helpers'
 
 test.describe('Side Panel', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to kanban page
     await page.goto('/kanban')
-    
-    // Wait for the page to be fully loaded
     await expect(page.getByRole('heading', { name: 'Welcome to Kanban' })).toBeVisible()
   })
 
   test('should create a new board via side panel', async ({ page }) => {
-    // Set viewport to ensure side panel is visible on desktop
-    await page.setViewportSize({ width: 1400, height: 900 })
+    await openSidePanel(page)
     
-    // Open side panel by clicking menu toggle
-    await page.getByRole('button', { name: 'Toggle menu' }).click()
-    
-    // Wait for side panel animation
-    await page.waitForTimeout(400)
-    
-    // Verify "No boards yet" text is visible (side panel is open)
     await expect(page.getByText('No boards yet')).toBeVisible()
     
-    // Click the "Add" button using JavaScript to bypass viewport issues
     await page.evaluate(() => {
       const buttons = document.querySelectorAll('button')
       for (const button of buttons) {
-        if (button.textContent?.includes('Add')) {
+        if (button.textContent?.includes('Add') && !button.disabled) {
           button.click()
           break
         }
       }
     })
     
-    // Fill in the board name
     const boardName = 'Test Board'
-    await page.getByPlaceholder('New board name').fill(boardName)
+    const boardNameInput = page.getByPlaceholder('New board name')
+    await boardNameInput.fill(boardName)
     
-    // Click Create button using JavaScript
     await page.evaluate(() => {
       const buttons = document.querySelectorAll('button')
       for (const button of buttons) {
@@ -48,13 +36,7 @@ test.describe('Side Panel', () => {
       }
     })
     
-    // Wait for the board to appear
-    await page.waitForTimeout(100)
-    
-    // Verify the board appears in the list
-    await expect(page.getByRole('button', { name: boardName })).toBeVisible()
-    
-    // Verify "No boards yet" text is no longer visible
+    await expect(page.getByRole('button', { name: boardName })).toBeVisible({ timeout: 3000 })
     await expect(page.getByText('No boards yet')).not.toBeVisible()
   })
 })

@@ -27,6 +27,31 @@ async function globalSetup() {
   `)
   
   db.exec(`
+    CREATE TABLE IF NOT EXISTS kanban_column (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      kanban_board_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      created_at INTEGER DEFAULT (unixepoch()),
+      updated_at INTEGER DEFAULT (unixepoch()),
+      FOREIGN KEY (kanban_board_id) REFERENCES kanban_board(id)
+    )
+  `)
+  
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS kanban_card (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      kanban_board_id INTEGER NOT NULL,
+      kanban_column_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT,
+      created_at INTEGER DEFAULT (unixepoch()),
+      updated_at INTEGER DEFAULT (unixepoch()),
+      FOREIGN KEY (kanban_board_id) REFERENCES kanban_board(id),
+      FOREIGN KEY (kanban_column_id) REFERENCES kanban_column(id)
+    )
+  `)
+  
+  db.exec(`
     CREATE TABLE IF NOT EXISTS todos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
