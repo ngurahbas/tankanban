@@ -23,7 +23,27 @@ export const createBoard = createServerFn({ method: 'POST' })
       })
       .returning()
 
-    return board
+    const defaultColumns = ['To Do', 'In Progress', 'Done']
+    const columns = await Promise.all(
+      defaultColumns.map(name =>
+        db
+          .insert(kanbanColumn)
+          .values({
+            kanbanBoardId: board.id,
+            name,
+          })
+          .returning()
+      )
+    )
+
+    const columnIds = columns.map(([col]) => col.id).join(',')
+    const [updatedBoard] = await db
+      .update(kanbanBoard)
+      .set({ columnsOrder: columnIds })
+      .where(eq(kanbanBoard.id, board.id))
+      .returning()
+
+    return updatedBoard
   })
 
 export const getBoard = createServerFn({ method: 'GET' })

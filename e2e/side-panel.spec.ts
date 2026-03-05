@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { openSidePanel } from './test-helpers'
+import { openSidePanel, verifyInitialColumns } from './test-helpers'
 
 test.describe('Side Panel', () => {
   test.beforeEach(async ({ page }) => {
@@ -41,5 +41,7 @@ test.describe('Side Panel', () => {
     
     await expect(page.getByRole('button', { name: boardName })).toBeVisible({ timeout: 3000 })
     await expect(page.getByText('No boards yet')).not.toBeVisible()
+    
+    await verifyInitialColumns(page)
   })
 })

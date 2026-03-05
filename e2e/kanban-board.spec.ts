@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { createBoard, createColumn, createCard } from './test-helpers'
+import { createBoard, createColumn, verifyInitialColumns } from './test-helpers'
 
 test.describe('Kanban Board View', () => {
   test.beforeEach(async ({ page }) => {
@@ -10,19 +10,36 @@ test.describe('Kanban Board View', () => {
     await createBoard(page, 'Test Board')
     
     await expect(page.getByRole('button', { name: 'Test Board' })).toBeVisible()
+    await verifyInitialColumns(page)
   })
 
-  test('should add columns to a board', async ({ page }) => {
+  test('should add additional columns to a board', async ({ page }) => {
     await createBoard(page, 'Board with Columns')
     
-    await createColumn(page, 'To Do')
-    await createColumn(page, 'In Progress')
+    await verifyInitialColumns(page)
+    
+    await createColumn(page, 'Review')
+    await createColumn(page, 'Testing')
+    
+    const addCardButtons = page.getByRole('button', { name: 'Add Card' })
+    await expect(addCardButtons).toHaveCount(5)
   })
 
-  test('should add cards to a column', async ({ page }) => {
+  test('should add cards to a default column', async ({ page }) => {
     await createBoard(page, 'Board with Cards')
-    await createColumn(page, 'Tasks')
-    await createCard(page, 'First Task')
+    
+    await verifyInitialColumns(page)
+    
+    const addCardButton = page.getByRole('button', { name: 'Add Card' }).first()
+    await addCardButton.click()
+    
+    const cardNameInput = page.getByPlaceholder('Card name')
+    await cardNameInput.waitFor({ state: 'visible', timeout: 3000 })
+    await cardNameInput.fill('First Task')
+    await cardNameInput.press('Enter')
+    
+    await page.waitForTimeout(500)
+    await expect(page.locator('text="First Task"').first()).toBeVisible({ timeout: 5000 })
   })
 
   test('should edit board title inline', async ({ page }) => {
@@ -40,8 +57,18 @@ test.describe('Kanban Board View', () => {
 
   test('should edit card description', async ({ page }) => {
     await createBoard(page, 'Board for Card Description')
-    await createColumn(page, 'Column')
-    await createCard(page, 'Card with Description')
+    
+    await verifyInitialColumns(page)
+    
+    const addCardButton = page.getByRole('button', { name: 'Add Card' }).first()
+    await addCardButton.click()
+    
+    const cardNameInput = page.getByPlaceholder('Card name')
+    await cardNameInput.waitFor({ state: 'visible', timeout: 3000 })
+    await cardNameInput.fill('Card with Description')
+    await cardNameInput.press('Enter')
+    
+    await page.waitForTimeout(500)
     
     const addDescriptionPlaceholder = page.getByText('Add description...')
     await addDescriptionPlaceholder.click()

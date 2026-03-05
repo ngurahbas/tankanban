@@ -66,3 +66,12 @@ export async function createCard(page: Page, cardName: string): Promise<void> {
   await page.waitForTimeout(500)
   await expect(page.locator(`text="${cardName}"`).first()).toBeVisible({ timeout: 5000 })
 }
+
+export async function verifyInitialColumns(page: Page): Promise<void> {
+  await expect(page.getByRole('button', { name: 'To Do' })).toBeVisible({ timeout: 5000 })
+  await expect(page.getByRole('button', { name: 'In Progress' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Done' })).toBeVisible()
+  
+  const addCardButtons = page.getByRole('button', { name: 'Add Card' })
+  await expect(addCardButtons).toHaveCount(3)
+}
