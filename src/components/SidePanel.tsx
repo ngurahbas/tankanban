@@ -77,10 +77,7 @@ export default function SidePanel({ boards, isOpen, onClose, onBoardCreated }: S
                 </Link>
               ))
             )}
-          </div>
-
-          {/* Add Board Section */}
-          <div className="mt-4 border-t border-[var(--line)] pt-4">
+            <div className="mt-2 border-t border-[var(--line)] pt-2">
             {!showAddForm ? (
               <button
                 onClick={() => setShowAddForm(true)}
@@ -118,6 +115,7 @@ export default function SidePanel({ boards, isOpen, onClose, onBoardCreated }: S
                 </div>
               </form>
             )}
+            </div>
           </div>
         </div>
       </aside>
