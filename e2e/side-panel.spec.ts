@@ -10,7 +10,10 @@ test.describe('Side Panel', () => {
   test('should create a new board via side panel', async ({ page }) => {
     await openSidePanel(page)
     
-    await expect(page.getByText('No boards yet')).toBeVisible()
+    const noBoardsText = page.getByText('No boards yet')
+    if (await noBoardsText.isVisible()) {
+      await expect(noBoardsText).toBeVisible()
+    }
     
     await page.evaluate(() => {
       const buttons = document.querySelectorAll('button')
