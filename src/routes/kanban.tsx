@@ -22,6 +22,7 @@ export const Route = createFileRoute('/kanban')({
 
 function KanbanLayout() {
   const loaderData = Route.useLoaderData()
+  const { user } = Route.useRouteContext()
   const initialBoards = loaderData?.boards ?? []
   const [boards, setBoards] = useState(initialBoards)
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
@@ -33,7 +34,7 @@ function KanbanLayout() {
 
   return (
     <div className="flex h-screen flex-col sm:flex-row">
-      <MainPanel onMenuToggle={() => setIsSidePanelOpen(!isSidePanelOpen)} />
+      <MainPanel onMenuToggle={() => setIsSidePanelOpen(!isSidePanelOpen)} user={user} />
 
       <SidePanel
         boards={boards}

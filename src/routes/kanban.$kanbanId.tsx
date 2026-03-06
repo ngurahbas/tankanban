@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, useNavigate, redirect } from '@tanstack/react-router'
 import { getBoards, getBoard, updateBoard, createColumn, updateColumn, deleteColumn, createCard, updateCard, deleteCard, moveCard } from '../lib/kanban.ts'
+import { getCurrentUser } from '../lib/auth.ts'
 import MainPanel from '../components/MainPanel.tsx'
 import SidePanel from '../components/SidePanel.tsx'
 import { KanbanBoardView } from '../components/KanbanBoardView.tsx'
@@ -14,10 +15,18 @@ export const Route = createFileRoute('/kanban/$kanbanId')({
     ])
     return { boards, board }
   },
+  beforeLoad: async () => {
+    const user = await getCurrentUser()
+    if (!user) {
+      throw redirect({ to: '/login' })
+    }
+    return { user }
+  },
 })
 
 function KanbanBoardPage() {
   const { boards: initialBoards, board: initialBoard } = Route.useLoaderData()
+  const { user } = Route.useRouteContext()
   const params = Route.useParams()
   const navigate = useNavigate()
   const [boards, setBoards] = useState(initialBoards)
@@ -128,7 +137,7 @@ function KanbanBoardPage() {
 
   return (
     <div className="flex h-screen flex-col sm:flex-row">
-      <MainPanel onMenuToggle={() => setIsSidePanelOpen(!isSidePanelOpen)} />
+      <MainPanel onMenuToggle={() => setIsSidePanelOpen(!isSidePanelOpen)} user={user} />
 
       <SidePanel
         boards={boards}
