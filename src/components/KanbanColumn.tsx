@@ -57,7 +57,7 @@ export function KanbanColumn({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group flex h-fit w-72 flex-shrink-0 flex-col rounded-lg border border-[var(--line)] bg-[var(--header-bg)] ${
+      className={`group flex h-fit w-[85vw] sm:w-72 snap-center flex-shrink-0 flex-col rounded-lg border border-[var(--line)] bg-[var(--header-bg)] ${
         isDragging ? 'shadow-lg' : ''
       }`}
     >
@@ -69,7 +69,7 @@ export function KanbanColumn({
             className="font-semibold text-[var(--sea-ink)]"
           />
         </div>
-        <div className="flex gap-1 opacity-0 transition group-hover:opacity-100">
+        <div className="flex gap-1 opacity-100 sm:opacity-0 sm:transition sm:group-hover:sm:opacity-100">
           <button
             {...attributes}
             {...listeners}

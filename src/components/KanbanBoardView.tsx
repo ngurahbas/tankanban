@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, horizontalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { Plus } from 'lucide-react'
 import type { kanbanBoard, kanbanColumn, kanbanCard } from '../db/schema'
@@ -47,6 +47,11 @@ export function KanbanBoardView({
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
       activationConstraint: {
         distance: 8,
       },
@@ -133,8 +138,8 @@ export function KanbanBoardView({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex-1 overflow-x-auto overflow-y-hidden p-6">
-          <div className="flex gap-4 h-full">
+        <div className="flex-1 overflow-x-auto snap-x snap-mandatory overflow-y-hidden p-4 sm:p-6">
+          <div className="flex gap-3 sm:gap-4 h-full">
             <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
               {columns.map((column) => (
                 <KanbanColumn
@@ -155,13 +160,13 @@ export function KanbanBoardView({
                 <Button
                   variant="outline"
                   onClick={() => setShowAddColumn(true)}
-                  className="h-fit w-72 justify-start border-dashed border-[var(--line)] bg-transparent text-[var(--sea-ink-soft)] hover:border-[var(--lagoon)] hover:bg-[var(--link-bg-hover)]"
+                  className="h-fit w-[85vw] sm:w-72 justify-start border-dashed border-[var(--line)] bg-transparent text-[var(--sea-ink-soft)] hover:border-[var(--lagoon)] hover:bg-[var(--link-bg-hover)]"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Add Column
                 </Button>
               ) : (
-                <div className="w-72 rounded-lg border border-[var(--line)] bg-[var(--header-bg)] p-3">
+                <div className="w-[85vw] sm:w-72 rounded-lg border border-[var(--line)] bg-[var(--header-bg)] p-3">
                   <input
                     type="text"
                     value={newColumnName}

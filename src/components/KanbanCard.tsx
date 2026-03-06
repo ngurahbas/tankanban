@@ -42,7 +42,7 @@ export function KanbanCard({ card, onUpdate, onDelete }: KanbanCardProps) {
             className="font-medium text-[var(--sea-ink)]"
           />
         </div>
-        <div className="flex gap-1 opacity-0 transition group-hover:opacity-100">
+        <div className="flex gap-1 opacity-100 sm:opacity-0 sm:transition sm:group-hover:sm:opacity-100">
           <button
             {...attributes}
             {...listeners}
