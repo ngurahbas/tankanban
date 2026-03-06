@@ -1,12 +1,20 @@
 import { createServerFn } from '@tanstack/react-start'
 import { db } from '../db/index.ts'
 import { kanbanBoard, kanbanColumn, kanbanCard } from '../db/schema.ts'
-import { desc, eq } from 'drizzle-orm'
+import { desc, eq, isNull } from 'drizzle-orm'
+import { validateSession } from './auth.ts'
 
 export const getBoards = createServerFn({ method: 'GET' }).handler(async () => {
+  const user = await validateSession()
+  
   const boards = await db
     .select()
     .from(kanbanBoard)
+    .where(
+      user 
+        ? eq(kanbanBoard.userId, user.id)
+        : isNull(kanbanBoard.userId)
+    )
     .orderBy(desc(kanbanBoard.createdAt))
   
   return boards
@@ -15,9 +23,12 @@ export const getBoards = createServerFn({ method: 'GET' }).handler(async () => {
 export const createBoard = createServerFn({ method: 'POST' })
   .inputValidator((data: string) => data)
   .handler(async (ctx) => {
+    const user = await validateSession()
+    
     const [board] = await db
       .insert(kanbanBoard)
       .values({
+        userId: user?.id ?? null,
         name: ctx.data,
         columnsOrder: '',
       })
@@ -29,6 +40,7 @@ export const createBoard = createServerFn({ method: 'POST' })
         db
           .insert(kanbanColumn)
           .values({
+            userId: user?.id ?? null,
             kanbanBoardId: board.id,
             name,
           })

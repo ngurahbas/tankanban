@@ -9,12 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as KanbanRouteImport } from './routes/kanban'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KanbanIndexRouteImport } from './routes/kanban/index'
 import { Route as KanbanKanbanIdRouteImport } from './routes/kanban.$kanbanId'
+import { Route as AuthCallbackGoogleRouteImport } from './routes/auth/callback/google'
 
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const KanbanRoute = KanbanRouteImport.update({
   id: '/kanban',
   path: '/kanban',
@@ -40,44 +47,85 @@ const KanbanKanbanIdRoute = KanbanKanbanIdRouteImport.update({
   path: '/$kanbanId',
   getParentRoute: () => KanbanRoute,
 } as any)
+const AuthCallbackGoogleRoute = AuthCallbackGoogleRouteImport.update({
+  id: '/auth/callback/google',
+  path: '/auth/callback/google',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/kanban': typeof KanbanRouteWithChildren
+  '/login': typeof LoginRoute
   '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
   '/kanban/': typeof KanbanIndexRoute
+  '/auth/callback/google': typeof AuthCallbackGoogleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/login': typeof LoginRoute
   '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
   '/kanban': typeof KanbanIndexRoute
+  '/auth/callback/google': typeof AuthCallbackGoogleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/kanban': typeof KanbanRouteWithChildren
+  '/login': typeof LoginRoute
   '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
   '/kanban/': typeof KanbanIndexRoute
+  '/auth/callback/google': typeof AuthCallbackGoogleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/kanban' | '/kanban/$kanbanId' | '/kanban/'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/kanban'
+    | '/login'
+    | '/kanban/$kanbanId'
+    | '/kanban/'
+    | '/auth/callback/google'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/kanban/$kanbanId' | '/kanban'
-  id: '__root__' | '/' | '/about' | '/kanban' | '/kanban/$kanbanId' | '/kanban/'
+  to:
+    | '/'
+    | '/about'
+    | '/login'
+    | '/kanban/$kanbanId'
+    | '/kanban'
+    | '/auth/callback/google'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/kanban'
+    | '/login'
+    | '/kanban/$kanbanId'
+    | '/kanban/'
+    | '/auth/callback/google'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   KanbanRoute: typeof KanbanRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  AuthCallbackGoogleRoute: typeof AuthCallbackGoogleRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/kanban': {
       id: '/kanban'
       path: '/kanban'
@@ -113,6 +161,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KanbanKanbanIdRouteImport
       parentRoute: typeof KanbanRoute
     }
+    '/auth/callback/google': {
+      id: '/auth/callback/google'
+      path: '/auth/callback/google'
+      fullPath: '/auth/callback/google'
+      preLoaderRoute: typeof AuthCallbackGoogleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -133,6 +188,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   KanbanRoute: KanbanRouteWithChildren,
+  LoginRoute: LoginRoute,
+  AuthCallbackGoogleRoute: AuthCallbackGoogleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

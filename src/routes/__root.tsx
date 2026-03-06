@@ -3,6 +3,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import Footer from '../components/Footer'
 import Header from '../components/Header'
+import { getCurrentUser } from '../lib/auth.ts'
 
 import appCss from '../styles.css?url'
 
@@ -19,7 +20,7 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Tankanban',
       },
     ],
     links: [
@@ -29,12 +30,18 @@ export const Route = createRootRoute({
       },
     ],
   }),
+  loader: async () => {
+    const user = await getCurrentUser()
+    return { user }
+  },
   shellComponent: RootDocument,
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   const state = useRouterState()
   const isKanbanRoute = state.location.pathname.startsWith('/kanban')
+  const loaderData = Route.useLoaderData()
+  const user = loaderData?.user
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -43,7 +50,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
-        {!isKanbanRoute && <Header />}
+        {!isKanbanRoute && <Header user={user} />}
         {children}
         {!isKanbanRoute && <Footer />}
         <TanStackDevtools
