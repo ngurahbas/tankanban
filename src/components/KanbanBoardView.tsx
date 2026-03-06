@@ -115,6 +115,46 @@ export function KanbanBoardView({
     }
   }
 
+  const handleMoveCardLeft = (cardId: number) => {
+    const card = board.cards.find(c => c.id === cardId)
+    if (!card) return
+
+    const currentColumnIndex = columns.findIndex(c => c.id === card.kanbanColumnId)
+    if (currentColumnIndex <= 0) return
+
+    const targetColumnId = columns[currentColumnIndex - 1].id
+    onMoveCard(cardId, targetColumnId)
+  }
+
+  const handleMoveCardRight = (cardId: number) => {
+    const card = board.cards.find(c => c.id === cardId)
+    if (!card) return
+
+    const currentColumnIndex = columns.findIndex(c => c.id === card.kanbanColumnId)
+    if (currentColumnIndex >= columns.length - 1) return
+
+    const targetColumnId = columns[currentColumnIndex + 1].id
+    onMoveCard(cardId, targetColumnId)
+  }
+
+  const handleMoveColumnLeft = (columnId: number) => {
+    const currentIndex = columns.findIndex(c => c.id === columnId)
+    if (currentIndex <= 0) return
+
+    const newColumns = arrayMove(columns, currentIndex, currentIndex - 1)
+    setColumns(newColumns)
+    onReorderColumns(board.id, newColumns.map(c => c.id))
+  }
+
+  const handleMoveColumnRight = (columnId: number) => {
+    const currentIndex = columns.findIndex(c => c.id === columnId)
+    if (currentIndex >= columns.length - 1) return
+
+    const newColumns = arrayMove(columns, currentIndex, currentIndex + 1)
+    setColumns(newColumns)
+    onReorderColumns(board.id, newColumns.map(c => c.id))
+  }
+
   const getColumnCards = useCallback(
     (columnId: number) => {
       return board.cards.filter((card) => card.kanbanColumnId === columnId)
@@ -141,7 +181,7 @@ export function KanbanBoardView({
         <div className="flex-1 overflow-x-auto snap-x snap-mandatory overflow-y-hidden p-4 sm:p-6">
           <div className="flex gap-3 sm:gap-4 h-full">
             <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
-              {columns.map((column) => (
+              {columns.map((column, index) => (
                 <KanbanColumn
                   key={column.id}
                   column={column}
@@ -151,6 +191,12 @@ export function KanbanBoardView({
                   onCreateCard={(columnId, name) => onCreateCard(columnId, board.id, name)}
                   onUpdateCard={onUpdateCard}
                   onDeleteCard={onDeleteCard}
+                  columnIndex={index}
+                  totalColumns={columns.length}
+                  onMoveColumnLeft={handleMoveColumnLeft}
+                  onMoveColumnRight={handleMoveColumnRight}
+                  onMoveCardLeft={handleMoveCardLeft}
+                  onMoveCardRight={handleMoveCardRight}
                 />
               ))}
             </SortableContext>
@@ -212,6 +258,10 @@ export function KanbanBoardView({
               card={activeCard}
               onUpdate={() => {}}
               onDelete={() => {}}
+              columnIndex={0}
+              totalColumns={1}
+              onMoveLeft={() => {}}
+              onMoveRight={() => {}}
             />
           ) : null}
         </DragOverlay>

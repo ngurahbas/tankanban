@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Trash2 } from 'lucide-react'
@@ -8,9 +9,45 @@ interface KanbanCardProps {
   card: typeof kanbanCard.$inferSelect
   onUpdate: (cardId: number, data: { name?: string; description?: string }) => void
   onDelete: (cardId: number) => void
+  columnIndex: number
+  totalColumns: number
+  onMoveLeft: (cardId: number) => void
+  onMoveRight: (cardId: number) => void
 }
 
-export function KanbanCard({ card, onUpdate, onDelete }: KanbanCardProps) {
+export function KanbanCard({ card, onUpdate, onDelete, columnIndex, totalColumns, onMoveLeft, onMoveRight }: KanbanCardProps) {
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
+  const deleteButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!isConfirmingDelete) return
+
+    const timeoutId = setTimeout(() => {
+      setIsConfirmingDelete(false)
+    }, 3000)
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (deleteButtonRef.current && !deleteButtonRef.current.contains(event.target as Node)) {
+        setIsConfirmingDelete(false)
+      }
+    }
+
+    document.addEventListener('click', handleClickOutside)
+
+    return () => {
+      clearTimeout(timeoutId)
+      document.removeEventListener('click', handleClickOutside)
+    }
+  }, [isConfirmingDelete])
+
+  const handleDeleteClick = () => {
+    if (isConfirmingDelete) {
+      onDelete(card.id)
+    } else {
+      setIsConfirmingDelete(true)
+    }
+  }
+
   const {
     attributes,
     listeners,
@@ -42,7 +79,7 @@ export function KanbanCard({ card, onUpdate, onDelete }: KanbanCardProps) {
             className="font-medium text-[var(--sea-ink)]"
           />
         </div>
-        <div className="flex gap-1 opacity-100 sm:opacity-0 sm:transition sm:group-hover:sm:opacity-100">
+        <div className="hidden gap-1 sm:flex">
           <button
             {...attributes}
             {...listeners}
@@ -57,13 +94,25 @@ export function KanbanCard({ card, onUpdate, onDelete }: KanbanCardProps) {
               <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
             </svg>
           </button>
-          <button
-            onClick={() => onDelete(card.id)}
-            className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-red-50 hover:text-red-600"
-            aria-label="Delete card"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          <div className="relative">
+            <button
+              ref={deleteButtonRef}
+              onClick={handleDeleteClick}
+              className={`rounded p-1 ${
+                isConfirmingDelete
+                  ? 'bg-red-100 text-red-600'
+                  : 'text-[var(--sea-ink-soft)] hover:bg-red-50 hover:text-red-600'
+              }`}
+              aria-label="Delete card"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+            {isConfirmingDelete && (
+              <div className="absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-red-600 px-2 py-1 text-xs text-white shadow-lg">
+                Click again to delete
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <InlineEdit
@@ -73,6 +122,28 @@ export function KanbanCard({ card, onUpdate, onDelete }: KanbanCardProps) {
         className="text-sm text-[var(--sea-ink-soft)]"
         placeholder="Add description..."
       />
+      <div className="mt-3 flex items-center justify-between sm:hidden">
+        <button
+          onClick={() => onMoveLeft(card.id)}
+          disabled={columnIndex === 0}
+          className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Move card to previous column"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7 7-7M3 12h18" />
+          </svg>
+        </button>
+        <button
+          onClick={() => onMoveRight(card.id)}
+          disabled={columnIndex === totalColumns - 1}
+          className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+          aria-label="Move card to next column"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7-7 7M3 12h18" />
+          </svg>
+        </button>
+      </div>
     </div>
   )
 }
