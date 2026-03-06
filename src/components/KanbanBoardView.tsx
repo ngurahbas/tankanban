@@ -179,7 +179,7 @@ export function KanbanBoardView({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex-1 overflow-x-auto snap-x snap-mandatory overflow-y-hidden p-4 sm:p-6">
+        <div className="flex-1 overflow-x-auto overflow-y-hidden p-4 sm:p-6">
           <div className="flex gap-3 sm:gap-4 h-full">
             <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
               {columns.map((column, index) => (
