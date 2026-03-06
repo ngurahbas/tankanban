@@ -173,6 +173,7 @@ export function KanbanBoardView({
       </div>
 
       <DndContext
+        id={`dnd-context-${board.id}`}
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
