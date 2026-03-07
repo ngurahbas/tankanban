@@ -2,7 +2,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { db } from '../db/index.ts'
 import { userAuth, session } from '../db/schema.ts'
 import { eq, and } from 'drizzle-orm'
-import { Google } from 'arctic'
+import { Google, OAuth2Client, generateCodeVerifier, generateState, CodeChallengeMethod } from 'arctic'
 import { encodeBase32LowerCase } from '@oslojs/encoding'
 import { getCookie, setCookie, deleteCookie } from '@tanstack/react-start/server'
 
@@ -14,6 +14,21 @@ const google = new Google(
     ? 'https://yourdomain.com/auth/callback/google'
     : 'http://localhost:3000/auth/callback/google'
 )
+
+const keycloakBaseUrl = process.env.KEYCLOAK_BASE_URL || 'http://localhost:8080/realms/tankanban'
+const keycloak = new OAuth2Client(
+  process.env.KEYCLOAK_CLIENT_ID || 'tankanban',
+  process.env.KEYCLOAK_CLIENT_SECRET || 'tankanban-client-secret-12345',
+  process.env.NODE_ENV === 'production'
+    ? 'https://yourdomain.com/auth/callback/keycloak'
+    : 'http://localhost:3000/auth/callback/keycloak'
+)
+
+const keycloakEndpoints = {
+  authorize: `${keycloakBaseUrl}/protocol/openid-connect/auth`,
+  token: `${keycloakBaseUrl}/protocol/openid-connect/token`,
+  userinfo: `${keycloakBaseUrl}/protocol/openid-connect/userinfo`,
+}
 
 // Session configuration
 const SESSION_COOKIE_NAME = 'auth_session'
@@ -80,9 +95,8 @@ export const getGoogleAuthUrl = createServerFn({ method: 'GET' })
     const codeVerifier = generateId(32)
     const url = await google.createAuthorizationURL(state, codeVerifier, ['openid', 'email', 'profile'])
 
-    // Store state and code verifier in cookies for validation
     setCookie('oauth_state', state, {
-      maxAge: 600, // 10 minutes
+      maxAge: 600,
       path: '/',
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -90,6 +104,37 @@ export const getGoogleAuthUrl = createServerFn({ method: 'GET' })
     })
 
     setCookie('oauth_code_verifier', codeVerifier, {
+      maxAge: 600,
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    })
+
+    return url.toString()
+  })
+
+export const getKeycloakAuthUrl = createServerFn({ method: 'GET' })
+  .handler(async () => {
+    const state = generateState()
+    const codeVerifier = generateCodeVerifier()
+    const url = keycloak.createAuthorizationURLWithPKCE(
+      keycloakEndpoints.authorize,
+      state,
+      CodeChallengeMethod.S256,
+      codeVerifier,
+      ['openid', 'email', 'profile']
+    )
+
+    setCookie('oauth_state_keycloak', state, {
+      maxAge: 600,
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+    })
+
+    setCookie('oauth_code_verifier_keycloak', codeVerifier, {
       maxAge: 600,
       path: '/',
       httpOnly: true,
@@ -213,7 +258,113 @@ export const handleGoogleCallback = createServerFn({ method: 'GET' })
     }
   })
 
-// Logout
+export const handleKeycloakCallback = createServerFn({ method: 'GET' })
+  .inputValidator((data: { code: string; state: string }) => data)
+  .handler(async (ctx) => {
+    try {
+      const { code, state } = ctx.data
+
+      const storedState = getCookie('oauth_state_keycloak')
+      const storedCodeVerifier = getCookie('oauth_code_verifier_keycloak')
+
+      if (!storedState || !storedCodeVerifier || storedState !== state) {
+        console.error('OAuth state mismatch:', { storedState, state })
+        throw new Error('Invalid OAuth state')
+      }
+
+      deleteCookie('oauth_state_keycloak')
+      deleteCookie('oauth_code_verifier_keycloak')
+
+      let tokens
+      try {
+        tokens = await keycloak.validateAuthorizationCode(
+          keycloakEndpoints.token,
+          code,
+          storedCodeVerifier
+        )
+      } catch (err) {
+        console.error('Failed to validate authorization code:', err)
+        throw new Error('Failed to validate authorization code')
+      }
+
+      const keycloakUserResponse = await fetch(keycloakEndpoints.userinfo, {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken()}`,
+        },
+      })
+
+      if (!keycloakUserResponse.ok) {
+        const errorText = await keycloakUserResponse.text()
+        console.error('Failed to fetch user info:', errorText)
+        throw new Error('Failed to fetch user info from Keycloak')
+      }
+
+      const keycloakUser: {
+        sub: string
+        email: string
+        email_verified: boolean
+        name?: string
+        preferred_username?: string
+      } = await keycloakUserResponse.json()
+
+      if (!keycloakUser.email) {
+        throw new Error('Email not provided by Keycloak')
+      }
+
+      let [user] = await db
+        .select()
+        .from(userAuth)
+        .where(
+          and(
+            eq(userAuth.authType, 'OAUTH2'),
+            eq(userAuth.authProvider, 'KEYCLOAK'),
+            eq(userAuth.authValue, keycloakUser.email)
+          )
+        )
+        .limit(1)
+
+      if (!user) {
+        const [newUser] = await db
+          .insert(userAuth)
+          .values({
+            authType: 'OAUTH2',
+            authProvider: 'KEYCLOAK',
+            authValue: keycloakUser.email,
+            lastUsedAt: new Date(),
+          })
+          .returning()
+        user = newUser
+      } else {
+        await db
+          .update(userAuth)
+          .set({ lastUsedAt: new Date() })
+          .where(eq(userAuth.id, user.id))
+      }
+
+      const sessionId = generateId()
+      const expiresAt = new Date(Date.now() + SESSION_DURATION_MS)
+
+      await db.insert(session).values({
+        id: sessionId,
+        userId: user.id,
+        expiresAt,
+      })
+
+      setCookie(SESSION_COOKIE_NAME, sessionId, {
+        expires: expiresAt,
+        path: '/',
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+      })
+
+      return { success: true }
+    } catch (error) {
+      console.error('Keycloak OAuth callback error:', error)
+      throw error
+    }
+  })
+
 export const logout = createServerFn({ method: 'POST' })
   .handler(async () => {
     const sessionId = getCookie(SESSION_COOKIE_NAME)

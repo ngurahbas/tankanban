@@ -3,7 +3,7 @@ import { sql } from 'drizzle-orm'
 
 // Enums as const arrays
 export const authTypes = ['OAUTH2', 'MAGIC_LINK', 'OTP'] as const
-export const authProviders = ['GOOGLE', 'GITHUB', 'APPLE'] as const
+export const authProviders = ['GOOGLE', 'GITHUB', 'APPLE', 'KEYCLOAK'] as const
 
 export type AuthType = typeof authTypes[number]
 export type AuthProvider = typeof authProviders[number]

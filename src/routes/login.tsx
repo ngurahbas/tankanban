@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useState } from 'react'
-import { getGoogleAuthUrl, getCurrentUser } from '../lib/auth.ts'
+import { getGoogleAuthUrl, getKeycloakAuthUrl, getCurrentUser } from '../lib/auth.ts'
 import { Button } from '../components/ui/button.tsx'
 
 export const Route = createFileRoute('/login')({
@@ -15,15 +15,31 @@ export const Route = createFileRoute('/login')({
 
 function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingProvider, setLoadingProvider] = useState<'google' | 'keycloak' | null>(null)
 
   const handleGoogleLogin = async () => {
     setIsLoading(true)
+    setLoadingProvider('google')
     try {
       const url = await getGoogleAuthUrl()
       window.location.href = url
     } catch (error) {
       console.error('Failed to get Google auth URL:', error)
       setIsLoading(false)
+      setLoadingProvider(null)
+    }
+  }
+
+  const handleKeycloakLogin = async () => {
+    setIsLoading(true)
+    setLoadingProvider('keycloak')
+    try {
+      const url = await getKeycloakAuthUrl()
+      window.location.href = url
+    } catch (error) {
+      console.error('Failed to get Keycloak auth URL:', error)
+      setIsLoading(false)
+      setLoadingProvider(null)
     }
   }
 
@@ -46,7 +62,7 @@ function LoginPage() {
             className="w-full"
             size="lg"
           >
-            {isLoading ? (
+            {loadingProvider === 'google' ? (
               <span className="flex items-center gap-2">
                 <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
                   <circle
@@ -87,6 +103,43 @@ function LoginPage() {
                   />
                 </svg>
                 Continue with Google
+              </span>
+            )}
+          </Button>
+
+          <Button
+            onClick={handleKeycloakLogin}
+            disabled={isLoading}
+            className="w-full"
+            size="lg"
+            variant="outline"
+          >
+            {loadingProvider === 'keycloak' ? (
+              <span className="flex items-center gap-2">
+                <svg className="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                Connecting...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.07 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+                </svg>
+                Continue with Keycloak
               </span>
             )}
           </Button>

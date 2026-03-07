@@ -15,6 +15,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KanbanIndexRouteImport } from './routes/kanban/index'
 import { Route as KanbanKanbanIdRouteImport } from './routes/kanban.$kanbanId'
+import { Route as AuthCallbackKeycloakRouteImport } from './routes/auth/callback/keycloak'
 import { Route as AuthCallbackGoogleRouteImport } from './routes/auth/callback/google'
 
 const LoginRoute = LoginRouteImport.update({
@@ -47,6 +48,11 @@ const KanbanKanbanIdRoute = KanbanKanbanIdRouteImport.update({
   path: '/$kanbanId',
   getParentRoute: () => KanbanRoute,
 } as any)
+const AuthCallbackKeycloakRoute = AuthCallbackKeycloakRouteImport.update({
+  id: '/auth/callback/keycloak',
+  path: '/auth/callback/keycloak',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackGoogleRoute = AuthCallbackGoogleRouteImport.update({
   id: '/auth/callback/google',
   path: '/auth/callback/google',
@@ -61,6 +67,7 @@ export interface FileRoutesByFullPath {
   '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
   '/kanban/': typeof KanbanIndexRoute
   '/auth/callback/google': typeof AuthCallbackGoogleRoute
+  '/auth/callback/keycloak': typeof AuthCallbackKeycloakRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
   '/kanban': typeof KanbanIndexRoute
   '/auth/callback/google': typeof AuthCallbackGoogleRoute
+  '/auth/callback/keycloak': typeof AuthCallbackKeycloakRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
   '/kanban/': typeof KanbanIndexRoute
   '/auth/callback/google': typeof AuthCallbackGoogleRoute
+  '/auth/callback/keycloak': typeof AuthCallbackKeycloakRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/kanban/$kanbanId'
     | '/kanban/'
     | '/auth/callback/google'
+    | '/auth/callback/keycloak'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/kanban/$kanbanId'
     | '/kanban'
     | '/auth/callback/google'
+    | '/auth/callback/keycloak'
   id:
     | '__root__'
     | '/'
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/kanban/$kanbanId'
     | '/kanban/'
     | '/auth/callback/google'
+    | '/auth/callback/keycloak'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -115,6 +127,7 @@ export interface RootRouteChildren {
   KanbanRoute: typeof KanbanRouteWithChildren
   LoginRoute: typeof LoginRoute
   AuthCallbackGoogleRoute: typeof AuthCallbackGoogleRoute
+  AuthCallbackKeycloakRoute: typeof AuthCallbackKeycloakRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KanbanKanbanIdRouteImport
       parentRoute: typeof KanbanRoute
     }
+    '/auth/callback/keycloak': {
+      id: '/auth/callback/keycloak'
+      path: '/auth/callback/keycloak'
+      fullPath: '/auth/callback/keycloak'
+      preLoaderRoute: typeof AuthCallbackKeycloakRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback/google': {
       id: '/auth/callback/google'
       path: '/auth/callback/google'
@@ -190,6 +210,7 @@ const rootRouteChildren: RootRouteChildren = {
   KanbanRoute: KanbanRouteWithChildren,
   LoginRoute: LoginRoute,
   AuthCallbackGoogleRoute: AuthCallbackGoogleRoute,
+  AuthCallbackKeycloakRoute: AuthCallbackKeycloakRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
