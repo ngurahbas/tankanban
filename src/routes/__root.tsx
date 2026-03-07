@@ -1,4 +1,4 @@
-import { HeadContent, Scripts, createRootRoute, useRouterState } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRoute, useRouterState, Link } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import Footer from '../components/Footer'
@@ -35,6 +35,7 @@ export const Route = createRootRoute({
     return { user }
   },
   shellComponent: RootDocument,
+  notFoundComponent: NotFound,
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
@@ -67,5 +68,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <Scripts />
       </body>
     </html>
+  )
+}
+
+function NotFound() {
+  return (
+    <div className="flex min-h-[60vh] flex-col items-center justify-center px-4">
+      <h1 className="text-4xl font-bold text-[var(--sea-ink)]">404 - Page Not Found</h1>
+      <p className="mt-4 text-[var(--sea-ink-soft)]">The page you're looking for doesn't exist.</p>
+      <Link to="/kanban" className="mt-6 rounded-lg bg-[var(--sea-foam)] px-6 py-2 text-white transition hover:opacity-90">
+        Go to Kanban
+      </Link>
+    </div>
   )
 }

@@ -17,13 +17,12 @@ export const Route = createFileRoute('/auth/callback/keycloak')({
       throw new Error('Missing authorization code or state')
     }
 
-    try {
-      await handleKeycloakCallback({ data: { code, state } })
-      throw redirect({ to: '/kanban' })
-    } catch (err) {
-      console.error('Keycloak OAuth callback failed:', err)
-      throw redirect({ to: '/login' })
-    }
+    await handleKeycloakCallback({ data: { code, state } })
+      .catch((err) => {
+        console.error('Keycloak OAuth callback failed:', err)
+        throw redirect({ to: '/login' })
+      })
+    throw redirect({ to: '/kanban' })
   },
 })
 

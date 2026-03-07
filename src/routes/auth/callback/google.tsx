@@ -17,13 +17,12 @@ export const Route = createFileRoute('/auth/callback/google')({
       throw new Error('Missing authorization code or state')
     }
 
-    try {
-      await handleGoogleCallback({ data: { code, state } })
-      throw redirect({ to: '/kanban' })
-    } catch (err) {
-      console.error('OAuth callback failed:', err)
-      throw redirect({ to: '/login' })
-    }
+    await handleGoogleCallback({ data: { code, state } })
+      .catch((err) => {
+        console.error('OAuth callback failed:', err)
+        throw redirect({ to: '/login' })
+      })
+    throw redirect({ to: '/kanban' })
   },
 })
 
