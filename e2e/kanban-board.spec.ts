@@ -38,7 +38,6 @@ test.describe('Kanban Board View', () => {
     await cardNameInput.fill('First Task')
     await cardNameInput.press('Enter')
     
-    await page.waitForTimeout(500)
     await expect(page.locator('text="First Task"').first()).toBeVisible({ timeout: 5000 })
   })
 
@@ -67,8 +66,6 @@ test.describe('Kanban Board View', () => {
     await cardNameInput.waitFor({ state: 'visible', timeout: 3000 })
     await cardNameInput.fill('Card with Description')
     await cardNameInput.press('Enter')
-    
-    await page.waitForTimeout(500)
     
     const addDescriptionPlaceholder = page.getByText('Add description...')
     await addDescriptionPlaceholder.click()
