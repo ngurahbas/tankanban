@@ -14,3 +14,4 @@ todos.json
 .idea/
 *.db
 test-results/
+playwright/.auth/

@@ -1,11 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
 
-/**
- * Playwright E2E Configuration
- * - Uses port 3333 (different from dev port 3000)
- * - In-memory database for testing
- * - Short timeouts for fast feedback
- */
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -23,8 +17,23 @@ export default defineConfig({
 
   projects: [
     {
+      name: 'setup',
+      testMatch: /auth\.setup\.ts/,
+    },
+    {
       name: 'chromium',
+      use: { 
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
+      testIgnore: ['**/keycloak-login.spec.ts'],
+    },
+    {
+      name: 'auth-tests',
+      testMatch: ['**/keycloak-login.spec.ts'],
       use: { ...devices['Desktop Chrome'] },
+      dependencies: ['setup'],
     },
   ],
 
