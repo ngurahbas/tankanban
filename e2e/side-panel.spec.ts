@@ -1,6 +1,10 @@
 import { test, expect } from '@playwright/test'
 import { openSidePanel, verifyInitialColumns } from './test-helpers'
 
+function uniqueName(name: string): string {
+  return `${name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+}
+
 test.describe('Side Panel', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/kanban')
@@ -25,7 +29,7 @@ test.describe('Side Panel', () => {
       }
     })
     
-    const boardName = 'Test Board'
+    const boardName = uniqueName('Test Board')
     const boardNameInput = page.getByPlaceholder('New board name')
     await boardNameInput.fill(boardName)
     

@@ -7,9 +7,9 @@ test.describe('Kanban Board View', () => {
   })
 
   test('should create a new board and navigate to it', async ({ page }) => {
-    await createBoard(page, 'Test Board')
+    const boardName = await createBoard(page, 'Test Board')
     
-    await expect(page.getByRole('button', { name: 'Test Board' })).toBeVisible()
+    await expect(page.getByRole('button', { name: boardName })).toBeVisible()
     await verifyInitialColumns(page)
   })
 
@@ -43,9 +43,9 @@ test.describe('Kanban Board View', () => {
   })
 
   test('should edit board title inline', async ({ page }) => {
-    await createBoard(page, 'Editable Board')
+    const boardName = await createBoard(page, 'Editable Board')
     
-    const boardTitle = page.getByRole('button', { name: 'Editable Board' })
+    const boardTitle = page.getByRole('button', { name: boardName })
     await boardTitle.click()
     
     const input = page.getByRole('textbox')

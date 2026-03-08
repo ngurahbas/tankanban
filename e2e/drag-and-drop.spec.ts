@@ -21,93 +21,75 @@ test.describe('Drag and Drop', () => {
       await createBoard(page, 'Card Movement Test')
       await verifyInitialColumns(page)
       
-      // Create a card in To Do
-      await createCard(page, 'Task to Move')
+      const cardName = await createCard(page, 'Task to Move')
       
-      // Verify card is in To Do
-      await expectCardInColumn(page, 'Task to Move', 'To Do')
+      await expectCardInColumn(page, cardName, 'To Do')
       
-      // Drag card to In Progress
-      await dragCardToColumn(page, 'Task to Move', 'In Progress')
+      await dragCardToColumn(page, cardName, 'In Progress')
       
-      // Verify card moved
-      await expectCardNotInColumn(page, 'Task to Move', 'To Do')
-      await expectCardInColumn(page, 'Task to Move', 'In Progress')
+      await expectCardNotInColumn(page, cardName, 'To Do')
+      await expectCardInColumn(page, cardName, 'In Progress')
     })
 
     test('should move card from In Progress to Done', async ({ page }) => {
       await createBoard(page, 'Card to Done Test')
       await verifyInitialColumns(page)
       
-      // Create a card first
-      await createCard(page, 'Complete Task')
+      const cardName = await createCard(page, 'Complete Task')
       
-      // Move to In Progress first
-      await dragCardToColumn(page, 'Complete Task', 'In Progress')
-      await expectCardInColumn(page, 'Complete Task', 'In Progress')
+      await dragCardToColumn(page, cardName, 'In Progress')
+      await expectCardInColumn(page, cardName, 'In Progress')
       
-      // Now move to Done
-      await dragCardToColumn(page, 'Complete Task', 'Done')
+      await dragCardToColumn(page, cardName, 'Done')
       
-      // Verify final position
-      await expectCardNotInColumn(page, 'Complete Task', 'In Progress')
-      await expectCardInColumn(page, 'Complete Task', 'Done')
+      await expectCardNotInColumn(page, cardName, 'In Progress')
+      await expectCardInColumn(page, cardName, 'Done')
     })
 
     test('should move card to empty column', async ({ page }) => {
       await createBoard(page, 'Empty Column Test')
       await verifyInitialColumns(page)
       
-      // Create a new empty column
-      await createColumn(page, 'Review')
+      const columnName = await createColumn(page, 'Review')
       
-      // Create a card in To Do
-      await createCard(page, 'Review Task')
-      await expectCardInColumn(page, 'Review Task', 'To Do')
+      const cardName = await createCard(page, 'Review Task')
+      await expectCardInColumn(page, cardName, 'To Do')
       
-      // Move to empty Review column
-      await dragCardToColumn(page, 'Review Task', 'Review')
+      await dragCardToColumn(page, cardName, columnName)
       
-      // Verify moved to Review
-      await expectCardNotInColumn(page, 'Review Task', 'To Do')
-      await expectCardInColumn(page, 'Review Task', 'Review')
+      await expectCardNotInColumn(page, cardName, 'To Do')
+      await expectCardInColumn(page, cardName, columnName)
     })
 
     test('should persist card movement after page reload', async ({ page }) => {
       await createBoard(page, 'Persistence Test')
       await verifyInitialColumns(page)
       
-      // Create and move card
-      await createCard(page, 'Persistent Task')
-      await dragCardToColumn(page, 'Persistent Task', 'In Progress')
-      await expectCardInColumn(page, 'Persistent Task', 'In Progress')
+      const cardName = await createCard(page, 'Persistent Task')
+      await dragCardToColumn(page, cardName, 'In Progress')
+      await expectCardInColumn(page, cardName, 'In Progress')
       
-      // Reload page
       await page.reload()
       await page.waitForLoadState('networkidle')
       
-      // Verify card still in In Progress
-      await expectCardInColumn(page, 'Persistent Task', 'In Progress')
-      await expectCardNotInColumn(page, 'Persistent Task', 'To Do')
+      await expectCardInColumn(page, cardName, 'In Progress')
+      await expectCardNotInColumn(page, cardName, 'To Do')
     })
 
     test('should move multiple cards to different columns', async ({ page }) => {
       await createBoard(page, 'Multiple Cards Test')
       await verifyInitialColumns(page)
       
-      // Create multiple cards
-      await createCard(page, 'Card 1')
-      await createCard(page, 'Card 2')
-      await createCard(page, 'Card 3')
+      const card1 = await createCard(page, 'Card 1')
+      const card2 = await createCard(page, 'Card 2')
+      const card3 = await createCard(page, 'Card 3')
       
-      // Move cards to different columns
-      await dragCardToColumn(page, 'Card 1', 'In Progress')
-      await dragCardToColumn(page, 'Card 2', 'Done')
+      await dragCardToColumn(page, card1, 'In Progress')
+      await dragCardToColumn(page, card2, 'Done')
       
-      // Verify positions
-      await expectCardInColumn(page, 'Card 1', 'In Progress')
-      await expectCardInColumn(page, 'Card 2', 'Done')
-      await expectCardInColumn(page, 'Card 3', 'To Do')
+      await expectCardInColumn(page, card1, 'In Progress')
+      await expectCardInColumn(page, card2, 'Done')
+      await expectCardInColumn(page, card3, 'To Do')
     })
   })
 
@@ -116,13 +98,10 @@ test.describe('Drag and Drop', () => {
       await createBoard(page, 'Column Order Test')
       await verifyInitialColumns(page)
       
-      // Initial order: To Do, In Progress, Done
       await expectColumnOrder(page, ['To Do', 'In Progress', 'Done'])
       
-      // Drag To Do to after Done (last position)
       await dragColumnToPosition(page, 'To Do', 'Done')
       
-      // New order should be: In Progress, Done, To Do
       await expectColumnOrder(page, ['In Progress', 'Done', 'To Do'])
     })
 
@@ -130,13 +109,10 @@ test.describe('Drag and Drop', () => {
       await createBoard(page, 'Column Order Test 2')
       await verifyInitialColumns(page)
       
-      // Initial order: To Do, In Progress, Done
       await expectColumnOrder(page, ['To Do', 'In Progress', 'Done'])
       
-      // Drag Done to before To Do (first position)
       await dragColumnToPosition(page, 'Done', 'To Do')
       
-      // New order should be: Done, To Do, In Progress
       await expectColumnOrder(page, ['Done', 'To Do', 'In Progress'])
     })
 
@@ -144,32 +120,25 @@ test.describe('Drag and Drop', () => {
       await createBoard(page, 'Column Order Test 3')
       await verifyInitialColumns(page)
       
-      // Add another column to make it more interesting
-      await createColumn(page, 'Review')
+      const columnName = await createColumn(page, 'Review')
       
-      // Initial order: To Do, In Progress, Done, Review
-      await expectColumnOrder(page, ['To Do', 'In Progress', 'Done', 'Review'])
+      await expectColumnOrder(page, ['To Do', 'In Progress', 'Done', columnName])
       
-      // Drag In Progress to before To Do
       await dragColumnToPosition(page, 'In Progress', 'To Do')
       
-      // New order should be: In Progress, To Do, Done, Review
-      await expectColumnOrder(page, ['In Progress', 'To Do', 'Done', 'Review'])
+      await expectColumnOrder(page, ['In Progress', 'To Do', 'Done', columnName])
     })
 
     test('should persist column order after page reload', async ({ page }) => {
       await createBoard(page, 'Column Persistence Test')
       await verifyInitialColumns(page)
       
-      // Reorder columns
       await dragColumnToPosition(page, 'To Do', 'Done')
       await expectColumnOrder(page, ['In Progress', 'Done', 'To Do'])
       
-      // Reload page
       await page.reload()
       await page.waitForLoadState('networkidle')
       
-      // Verify order persisted
       await expectColumnOrder(page, ['In Progress', 'Done', 'To Do'])
     })
 
@@ -177,18 +146,14 @@ test.describe('Drag and Drop', () => {
       await createBoard(page, 'Column With Cards Test')
       await verifyInitialColumns(page)
       
-      // Create a card in To Do
-      await createCard(page, 'Task in Column')
-      await expectCardInColumn(page, 'Task in Column', 'To Do')
+      const cardName = await createCard(page, 'Task in Column')
+      await expectCardInColumn(page, cardName, 'To Do')
       
-      // Drag To Do column to last position
       await dragColumnToPosition(page, 'To Do', 'Done')
       
-      // Verify column order changed
       await expectColumnOrder(page, ['In Progress', 'Done', 'To Do'])
       
-      // Verify card is still in the column
-      await expectCardInColumn(page, 'Task in Column', 'To Do')
+      await expectCardInColumn(page, cardName, 'To Do')
     })
   })
 })
