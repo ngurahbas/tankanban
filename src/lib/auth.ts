@@ -16,12 +16,11 @@ const google = new Google(
 )
 
 const keycloakBaseUrl = process.env.KEYCLOAK_BASE_URL || 'http://localhost:8080/realms/tankanban'
+const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000'
 const keycloak = new OAuth2Client(
   process.env.KEYCLOAK_CLIENT_ID || 'tankanban',
   process.env.KEYCLOAK_CLIENT_SECRET || 'tankanban-client-secret-12345',
-  process.env.NODE_ENV === 'production'
-    ? 'https://yourdomain.com/auth/callback/keycloak'
-    : 'http://localhost:3000/auth/callback/keycloak'
+  `${appBaseUrl}/auth/callback/keycloak`
 )
 
 const keycloakEndpoints = {

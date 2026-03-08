@@ -29,13 +29,10 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'rm -f e2e-test.db && DATABASE_URL=e2e-test.db npm run dev -- --port 3333',
+    command: 'APP_BASE_URL=http://localhost:3333 KEYCLOAK_BASE_URL=http://localhost:8080/realms/tankanban KEYCLOAK_CLIENT_ID=tankanban KEYCLOAK_CLIENT_SECRET=tankanban-client-secret-12345 npm run dev -- --port 3333',
     url: 'http://localhost:3333',
     reuseExistingServer: !process.env.CI,
     timeout: 30000,
-    env: {
-      DATABASE_URL: 'e2e-test.db',
-    },
   },
 
   globalSetup: './e2e/global-setup.ts',

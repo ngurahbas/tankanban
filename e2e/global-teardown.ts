@@ -1,15 +1,8 @@
-import { existsSync, unlinkSync } from 'fs'
-
-const DB_PATH = 'e2e-test.db'
-
 async function globalTeardown() {
   console.log('Cleaning up E2E test environment...')
   
-  // Clean up test database file
-  if (existsSync(DB_PATH)) {
-    unlinkSync(DB_PATH)
-    console.log('Test database file removed')
-  }
+  // Note: We don't delete dev.db as it's used for development
+  // Tables will be recreated on next test run
   
   console.log('E2E test environment cleaned up')
 }
