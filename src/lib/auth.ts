@@ -6,17 +6,15 @@ import { Google, OAuth2Client, generateCodeVerifier, generateState, CodeChalleng
 import { encodeBase32LowerCase } from '@oslojs/encoding'
 import { getCookie, setCookie, deleteCookie } from '@tanstack/react-start/server'
 
-// Initialize Google OAuth client
+const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000'
+
 const google = new Google(
   process.env.GOOGLE_CLIENT_ID!,
   process.env.GOOGLE_CLIENT_SECRET!,
-  process.env.NODE_ENV === 'production'
-    ? 'https://yourdomain.com/auth/callback/google'
-    : 'http://localhost:3000/auth/callback/google'
+  `${appBaseUrl}/auth/callback/google`
 )
 
 const keycloakBaseUrl = process.env.KEYCLOAK_BASE_URL || 'http://localhost:8080/realms/tankanban'
-const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000'
 const keycloak = new OAuth2Client(
   process.env.KEYCLOAK_CLIENT_ID || 'tankanban',
   process.env.KEYCLOAK_CLIENT_SECRET || 'tankanban-client-secret-12345',
