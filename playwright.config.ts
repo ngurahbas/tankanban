@@ -38,7 +38,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'APP_BASE_URL=http://localhost:3333 KEYCLOAK_BASE_URL=http://localhost:8080/realms/tankanban KEYCLOAK_CLIENT_ID=tankanban KEYCLOAK_CLIENT_SECRET=tankanban-client-secret-12345 npm run dev -- --port 3333',
+    command: 'APP_BASE_URL=http://localhost:3333 KEYCLOAK_BASE_URL=http://localhost:8080/realms/tankanban KEYCLOAK_CLIENT_ID=tankanban KEYCLOAK_CLIENT_SECRET=tankanban-client-secret-12345 bun run dev -- --port 3333',
     url: 'http://localhost:3333',
     reuseExistingServer: !process.env.CI,
     timeout: 30000,
