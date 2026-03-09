@@ -123,26 +123,46 @@ export function KanbanCard({ card, onUpdate, onDelete, columnIndex, totalColumns
         placeholder="Add description..."
       />
       <div className="mt-3 flex items-center justify-between sm:hidden">
-        <button
-          onClick={() => onMoveLeft(card.id)}
-          disabled={columnIndex === 0}
-          className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Move card to previous column"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7 7-7M3 12h18" />
-          </svg>
-        </button>
-        <button
-          onClick={() => onMoveRight(card.id)}
-          disabled={columnIndex === totalColumns - 1}
-          className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
-          aria-label="Move card to next column"
-        >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7-7 7M3 12h18" />
-          </svg>
-        </button>
+        <div className="flex gap-1">
+          <button
+            onClick={() => onMoveLeft(card.id)}
+            disabled={columnIndex === 0}
+            className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Move card to previous column"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7 7-7M3 12h18" />
+            </svg>
+          </button>
+          <button
+            onClick={() => onMoveRight(card.id)}
+            disabled={columnIndex === totalColumns - 1}
+            className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Move card to next column"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7-7 7M3 12h18" />
+            </svg>
+          </button>
+        </div>
+        <div className="relative">
+          <button
+            onClick={handleDeleteClick}
+            className={`rounded p-1 ${
+              isConfirmingDelete
+                ? 'bg-red-100 text-red-600'
+                : 'text-[var(--sea-ink-soft)] hover:bg-red-50 hover:text-red-600'
+            }`}
+            aria-label="Delete card"
+          >
+            <Trash2 className="h-5 w-5" />
+          </button>
+          {isConfirmingDelete && (
+            <div className="absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-red-600 px-2 py-1 text-xs text-white shadow-lg">
+              Click again to delete
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

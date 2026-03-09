@@ -133,6 +133,24 @@ export function KanbanColumn({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7-7 7M3 12h18" />
             </svg>
           </button>
+          <div className="relative">
+            <button
+              onClick={handleDeleteClick}
+              className={`rounded p-1 ${
+                isConfirmingDelete
+                  ? 'bg-red-100 text-red-600'
+                  : 'text-[var(--sea-ink-soft)] hover:bg-red-50 hover:text-red-600'
+              }`}
+              aria-label="Delete column"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+            {isConfirmingDelete && (
+              <div className="absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-red-600 px-2 py-1 text-xs text-white shadow-lg">
+                Click again to delete
+              </div>
+            )}
+          </div>
         </div>
         <div className="hidden gap-1 sm:flex">
           <button
