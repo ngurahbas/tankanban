@@ -1,20 +1,21 @@
 import { createServerFn } from '@tanstack/react-start'
 import { db } from '../db/index.ts'
 import { kanbanBoard, kanbanColumn, kanbanCard } from '../db/schema.ts'
-import { desc, eq, isNull } from 'drizzle-orm'
+import { desc, eq } from 'drizzle-orm'
 import { validateSession } from './auth.ts'
+import { ForbiddenError } from './errors.ts'
 
 export const getBoards = createServerFn({ method: 'GET' }).handler(async () => {
   const user = await validateSession()
   
+  if (!user) {
+    return []
+  }
+  
   const boards = await db
     .select()
     .from(kanbanBoard)
-    .where(
-      user 
-        ? eq(kanbanBoard.userId, user.id)
-        : isNull(kanbanBoard.userId)
-    )
+    .where(eq(kanbanBoard.userId, user.id))
     .orderBy(desc(kanbanBoard.createdAt))
   
   return boards
@@ -25,10 +26,14 @@ export const createBoard = createServerFn({ method: 'POST' })
   .handler(async (ctx) => {
     const user = await validateSession()
     
+    if (!user) {
+      throw new ForbiddenError('Authentication required')
+    }
+    
     const [board] = await db
       .insert(kanbanBoard)
       .values({
-        userId: user?.id ?? null,
+        userId: user.id,
         name: ctx.data,
         columnsOrder: '',
       })
@@ -40,7 +45,7 @@ export const createBoard = createServerFn({ method: 'POST' })
         db
           .insert(kanbanColumn)
           .values({
-            userId: user?.id ?? null,
+            userId: user.id,
             kanbanBoardId: board.id,
             name,
           })
@@ -61,6 +66,12 @@ export const createBoard = createServerFn({ method: 'POST' })
 export const getBoard = createServerFn({ method: 'GET' })
   .inputValidator((data: number) => data)
   .handler(async (ctx) => {
+    const user = await validateSession()
+    
+    if (!user) {
+      throw new ForbiddenError('Authentication required')
+    }
+    
     const [board] = await db
       .select()
       .from(kanbanBoard)
@@ -68,6 +79,10 @@ export const getBoard = createServerFn({ method: 'GET' })
     
     if (!board) {
       throw new Error('Board not found')
+    }
+
+    if (board.userId !== user.id) {
+      throw new ForbiddenError('You do not have access to this board')
     }
 
     const columns = await db
@@ -100,6 +115,26 @@ export const getBoard = createServerFn({ method: 'GET' })
 export const updateBoard = createServerFn({ method: 'POST' })
   .inputValidator((data: { id: number; name: string; columnsOrder?: string }) => data)
   .handler(async (ctx) => {
+    const user = await validateSession()
+    
+    if (!user) {
+      throw new ForbiddenError('Authentication required')
+    }
+    
+    const [existingBoard] = await db
+      .select()
+      .from(kanbanBoard)
+      .where(eq(kanbanBoard.id, ctx.data.id))
+      .limit(1)
+    
+    if (!existingBoard) {
+      throw new Error('Board not found')
+    }
+    
+    if (existingBoard.userId !== user.id) {
+      throw new ForbiddenError('You do not have access to this board')
+    }
+
     const [board] = await db
       .update(kanbanBoard)
       .set({
@@ -116,9 +151,30 @@ export const updateBoard = createServerFn({ method: 'POST' })
 export const createColumn = createServerFn({ method: 'POST' })
   .inputValidator((data: { boardId: number; name: string }) => data)
   .handler(async (ctx) => {
+    const user = await validateSession()
+    
+    if (!user) {
+      throw new ForbiddenError('Authentication required')
+    }
+    
+    const [board] = await db
+      .select()
+      .from(kanbanBoard)
+      .where(eq(kanbanBoard.id, ctx.data.boardId))
+      .limit(1)
+    
+    if (!board) {
+      throw new Error('Board not found')
+    }
+    
+    if (board.userId !== user.id) {
+      throw new ForbiddenError('You do not have access to this board')
+    }
+
     const [column] = await db
       .insert(kanbanColumn)
       .values({
+        userId: user.id,
         kanbanBoardId: ctx.data.boardId,
         name: ctx.data.name,
       })
@@ -130,7 +186,33 @@ export const createColumn = createServerFn({ method: 'POST' })
 export const updateColumn = createServerFn({ method: 'POST' })
   .inputValidator((data: { id: number; name: string }) => data)
   .handler(async (ctx) => {
+    const user = await validateSession()
+    
+    if (!user) {
+      throw new ForbiddenError('Authentication required')
+    }
+    
     const [column] = await db
+      .select()
+      .from(kanbanColumn)
+      .where(eq(kanbanColumn.id, ctx.data.id))
+      .limit(1)
+    
+    if (!column) {
+      throw new Error('Column not found')
+    }
+    
+    const [board] = await db
+      .select()
+      .from(kanbanBoard)
+      .where(eq(kanbanBoard.id, column.kanbanBoardId))
+      .limit(1)
+    
+    if (!board || board.userId !== user.id) {
+      throw new ForbiddenError('You do not have access to this board')
+    }
+
+    const [updatedColumn] = await db
       .update(kanbanColumn)
       .set({
         name: ctx.data.name,
@@ -139,12 +221,38 @@ export const updateColumn = createServerFn({ method: 'POST' })
       .where(eq(kanbanColumn.id, ctx.data.id))
       .returning()
 
-    return column
+    return updatedColumn
   })
 
 export const deleteColumn = createServerFn({ method: 'POST' })
   .inputValidator((data: number) => data)
   .handler(async (ctx) => {
+    const user = await validateSession()
+    
+    if (!user) {
+      throw new ForbiddenError('Authentication required')
+    }
+    
+    const [column] = await db
+      .select()
+      .from(kanbanColumn)
+      .where(eq(kanbanColumn.id, ctx.data))
+      .limit(1)
+    
+    if (!column) {
+      throw new Error('Column not found')
+    }
+    
+    const [board] = await db
+      .select()
+      .from(kanbanBoard)
+      .where(eq(kanbanBoard.id, column.kanbanBoardId))
+      .limit(1)
+    
+    if (!board || board.userId !== user.id) {
+      throw new ForbiddenError('You do not have access to this board')
+    }
+
     await db.delete(kanbanCard).where(eq(kanbanCard.kanbanColumnId, ctx.data))
     await db.delete(kanbanColumn).where(eq(kanbanColumn.id, ctx.data))
     return { success: true }
@@ -153,9 +261,30 @@ export const deleteColumn = createServerFn({ method: 'POST' })
 export const createCard = createServerFn({ method: 'POST' })
   .inputValidator((data: { columnId: number; boardId: number; name: string; description?: string }) => data)
   .handler(async (ctx) => {
+    const user = await validateSession()
+    
+    if (!user) {
+      throw new ForbiddenError('Authentication required')
+    }
+    
+    const [board] = await db
+      .select()
+      .from(kanbanBoard)
+      .where(eq(kanbanBoard.id, ctx.data.boardId))
+      .limit(1)
+    
+    if (!board) {
+      throw new Error('Board not found')
+    }
+    
+    if (board.userId !== user.id) {
+      throw new ForbiddenError('You do not have access to this board')
+    }
+
     const [card] = await db
       .insert(kanbanCard)
       .values({
+        userId: user.id,
         kanbanBoardId: ctx.data.boardId,
         kanbanColumnId: ctx.data.columnId,
         name: ctx.data.name,
@@ -169,7 +298,33 @@ export const createCard = createServerFn({ method: 'POST' })
 export const updateCard = createServerFn({ method: 'POST' })
   .inputValidator((data: { id: number; name?: string; description?: string }) => data)
   .handler(async (ctx) => {
+    const user = await validateSession()
+    
+    if (!user) {
+      throw new ForbiddenError('Authentication required')
+    }
+    
     const [card] = await db
+      .select()
+      .from(kanbanCard)
+      .where(eq(kanbanCard.id, ctx.data.id))
+      .limit(1)
+    
+    if (!card) {
+      throw new Error('Card not found')
+    }
+    
+    const [board] = await db
+      .select()
+      .from(kanbanBoard)
+      .where(eq(kanbanBoard.id, card.kanbanBoardId))
+      .limit(1)
+    
+    if (!board || board.userId !== user.id) {
+      throw new ForbiddenError('You do not have access to this board')
+    }
+
+    const [updatedCard] = await db
       .update(kanbanCard)
       .set({
         name: ctx.data.name,
@@ -179,12 +334,38 @@ export const updateCard = createServerFn({ method: 'POST' })
       .where(eq(kanbanCard.id, ctx.data.id))
       .returning()
 
-    return card
+    return updatedCard
   })
 
 export const deleteCard = createServerFn({ method: 'POST' })
   .inputValidator((data: number) => data)
   .handler(async (ctx) => {
+    const user = await validateSession()
+    
+    if (!user) {
+      throw new ForbiddenError('Authentication required')
+    }
+    
+    const [card] = await db
+      .select()
+      .from(kanbanCard)
+      .where(eq(kanbanCard.id, ctx.data))
+      .limit(1)
+    
+    if (!card) {
+      throw new Error('Card not found')
+    }
+    
+    const [board] = await db
+      .select()
+      .from(kanbanBoard)
+      .where(eq(kanbanBoard.id, card.kanbanBoardId))
+      .limit(1)
+    
+    if (!board || board.userId !== user.id) {
+      throw new ForbiddenError('You do not have access to this board')
+    }
+
     await db.delete(kanbanCard).where(eq(kanbanCard.id, ctx.data))
     return { success: true }
   })
@@ -192,7 +373,33 @@ export const deleteCard = createServerFn({ method: 'POST' })
 export const moveCard = createServerFn({ method: 'POST' })
   .inputValidator((data: { cardId: number; targetColumnId: number }) => data)
   .handler(async (ctx) => {
+    const user = await validateSession()
+    
+    if (!user) {
+      throw new ForbiddenError('Authentication required')
+    }
+    
     const [card] = await db
+      .select()
+      .from(kanbanCard)
+      .where(eq(kanbanCard.id, ctx.data.cardId))
+      .limit(1)
+    
+    if (!card) {
+      throw new Error('Card not found')
+    }
+    
+    const [board] = await db
+      .select()
+      .from(kanbanBoard)
+      .where(eq(kanbanBoard.id, card.kanbanBoardId))
+      .limit(1)
+    
+    if (!board || board.userId !== user.id) {
+      throw new ForbiddenError('You do not have access to this board')
+    }
+
+    const [updatedCard] = await db
       .update(kanbanCard)
       .set({
         kanbanColumnId: ctx.data.targetColumnId,
@@ -201,5 +408,5 @@ export const moveCard = createServerFn({ method: 'POST' })
       .where(eq(kanbanCard.id, ctx.data.cardId))
       .returning()
 
-    return card
+    return updatedCard
   })

@@ -51,7 +51,7 @@ export const kanbanBoard = sqliteTable('kanban_board', {
   id: integer({ mode: 'number' }).primaryKey({
     autoIncrement: true,
   }),
-  userId: integer('user_id').references(() => userAuth.id),
+  userId: integer('user_id').notNull().references(() => userAuth.id),
   name: text().notNull(),
   columnsOrder: text('columns_order'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(
@@ -66,7 +66,7 @@ export const kanbanColumn = sqliteTable('kanban_column', {
   id: integer({ mode: 'number' }).primaryKey({
     autoIncrement: true,
   }),
-  userId: integer('user_id').references(() => userAuth.id),
+  userId: integer('user_id').notNull().references(() => userAuth.id),
   kanbanBoardId: integer('kanban_board_id').notNull().references(() => kanbanBoard.id),
   name: text().notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(
@@ -81,7 +81,7 @@ export const kanbanCard = sqliteTable('kanban_card', {
   id: integer({ mode: 'number' }).primaryKey({
     autoIncrement: true,
   }),
-  userId: integer('user_id').references(() => userAuth.id),
+  userId: integer('user_id').notNull().references(() => userAuth.id),
   kanbanBoardId: integer('kanban_board_id').notNull().references(() => kanbanBoard.id),
   kanbanColumnId: integer('kanban_column_id').notNull().references(() => kanbanColumn.id),
   name: text().notNull(),

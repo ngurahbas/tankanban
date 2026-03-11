@@ -8,6 +8,13 @@
       "when": 1772772855388,
       "tag": "0000_quiet_stepford_cuckoos",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1773164048966,
+      "tag": "0001_loud_kronos",
+      "breakpoints": true
     }
   ]
 }
