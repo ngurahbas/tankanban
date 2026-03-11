@@ -8,6 +8,16 @@ import { InlineEdit } from './ui/inline-edit'
 import { KanbanCard } from './KanbanCard'
 import { Button } from './ui/button'
 
+const pulseGlowStyles = `
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); transform: scale(1); }
+  50% { box-shadow: 0 0 20px 4px rgba(37, 99, 235, 0.4); transform: scale(1.02); }
+}
+.animate-pulse-glow {
+  animation: pulse-glow 1.5s ease-in-out 2;
+}
+`
+
 interface KanbanColumnProps {
   column: typeof kanbanColumn.$inferSelect
   cards: typeof kanbanCard.$inferSelect[]
@@ -22,6 +32,8 @@ interface KanbanColumnProps {
   onMoveColumnRight: (columnId: number) => void
   onMoveCardLeft: (cardId: number) => void
   onMoveCardRight: (cardId: number) => void
+  isNewlyAdded?: boolean
+  onDismissHint?: () => void
 }
 
 export function KanbanColumn({
@@ -38,10 +50,15 @@ export function KanbanColumn({
   onMoveColumnRight,
   onMoveCardLeft,
   onMoveCardRight,
+  isNewlyAdded = false,
+  onDismissHint,
 }: KanbanColumnProps) {
   const [showAddCard, setShowAddCard] = useState(false)
   const [newCardName, setNewCardName] = useState('')
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
+  const [hintPhase, setHintPhase] = useState<'entering' | 'visible' | 'exiting' | 'hidden'>(
+    isNewlyAdded ? 'entering' : 'hidden'
+  )
   const deleteButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
@@ -64,6 +81,31 @@ export function KanbanColumn({
       document.removeEventListener('click', handleClickOutside)
     }
   }, [isConfirmingDelete])
+
+  useEffect(() => {
+    if (hintPhase === 'hidden') return
+
+    let timeoutId: NodeJS.Timeout
+
+    if (hintPhase === 'entering') {
+      timeoutId = setTimeout(() => {
+        setHintPhase('visible')
+      }, 300)
+    } else if (hintPhase === 'visible') {
+      timeoutId = setTimeout(() => {
+        setHintPhase('exiting')
+      }, 4000)
+    } else if (hintPhase === 'exiting') {
+      timeoutId = setTimeout(() => {
+        setHintPhase('hidden')
+        onDismissHint?.()
+      }, 500)
+    }
+
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [hintPhase, onDismissHint])
 
   const handleDeleteClick = () => {
     if (isConfirmingDelete) {
@@ -97,7 +139,9 @@ export function KanbanColumn({
   }
 
   return (
-    <div
+    <>
+      <style>{pulseGlowStyles}</style>
+      <div
       ref={setNodeRef}
       style={style}
       className={`group flex h-fit w-[85vw] sm:w-72 flex-shrink-0 flex-col rounded-lg border border-[var(--line)] bg-[var(--header-bg)] ${
@@ -112,7 +156,12 @@ export function KanbanColumn({
             className="font-semibold text-[var(--sea-ink)]"
           />
         </div>
-        <div className="flex items-center gap-1 sm:hidden">
+        <div className="relative flex items-center gap-1 sm:hidden">
+          {hintPhase !== 'hidden' && (
+            <div className={`absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-blue-600 px-2 py-1 text-xs text-white shadow-lg transition-all duration-300 ${hintPhase === 'entering' ? 'opacity-0 translate-y-[-4px] animate-pulse-glow' : hintPhase === 'visible' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-4px]'}`}>
+              Use ↑↓ to reorder
+            </div>
+          )}
           <button
             onClick={() => onMoveColumnLeft(column.id)}
             disabled={columnIndex === 0}
@@ -152,7 +201,12 @@ export function KanbanColumn({
             )}
           </div>
         </div>
-        <div className="hidden gap-1 sm:flex">
+        <div className="relative hidden gap-1 sm:flex">
+          {hintPhase !== 'hidden' && (
+            <div className={`absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-blue-600 px-2 py-1 text-xs text-white shadow-lg transition-all duration-300 ${hintPhase === 'entering' ? 'opacity-0 translate-y-[-4px] animate-pulse-glow' : hintPhase === 'visible' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-4px]'}`}>
+              Drag handle to move
+            </div>
+          )}
           <button
             {...attributes}
             {...listeners}
@@ -256,5 +310,6 @@ export function KanbanColumn({
         )}
       </div>
     </div>
+    </>
   )
 }

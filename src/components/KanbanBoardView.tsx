@@ -40,10 +40,22 @@ export function KanbanBoardView({
   const [newColumnName, setNewColumnName] = useState('')
   const [columns, setColumns] = useState(board.columns)
   const [activeCard, setActiveCard] = useState<typeof kanbanCard.$inferSelect | null>(null)
+  const [newlyAddedColumnIds, setNewlyAddedColumnIds] = useState<Set<number>>(new Set())
+  const [pendingColumnName, setPendingColumnName] = useState<string | null>(null)
 
   useEffect(() => {
     setColumns(board.columns)
   }, [board.columns])
+
+  useEffect(() => {
+    if (pendingColumnName) {
+      const newColumn = board.columns.find(col => col.name === pendingColumnName)
+      if (newColumn) {
+        setNewlyAddedColumnIds(prev => new Set(prev).add(newColumn.id))
+        setPendingColumnName(null)
+      }
+    }
+  }, [board.columns, pendingColumnName])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -109,10 +121,20 @@ export function KanbanBoardView({
 
   const handleAddColumn = () => {
     if (newColumnName.trim()) {
-      onCreateColumn(board.id, newColumnName.trim())
+      const name = newColumnName.trim()
+      setPendingColumnName(name)
+      onCreateColumn(board.id, name)
       setNewColumnName('')
       setShowAddColumn(false)
     }
+  }
+
+  const handleHintDismiss = (columnId: number) => {
+    setNewlyAddedColumnIds(prev => {
+      const next = new Set(prev)
+      next.delete(columnId)
+      return next
+    })
   }
 
   const handleMoveCardLeft = (cardId: number) => {
@@ -198,6 +220,8 @@ export function KanbanBoardView({
                   onMoveColumnRight={handleMoveColumnRight}
                   onMoveCardLeft={handleMoveCardLeft}
                   onMoveCardRight={handleMoveCardRight}
+                  isNewlyAdded={newlyAddedColumnIds.has(column.id)}
+                  onDismissHint={() => handleHintDismiss(column.id)}
                 />
               ))}
             </SortableContext>
