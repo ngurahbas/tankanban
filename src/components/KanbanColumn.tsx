@@ -34,6 +34,7 @@ interface KanbanColumnProps {
   onMoveCardRight: (cardId: number) => void
   isNewlyAdded?: boolean
   onDismissHint?: () => void
+  isColumnLayoutUnlocked?: boolean
 }
 
 export function KanbanColumn({
@@ -52,6 +53,7 @@ export function KanbanColumn({
   onMoveCardRight,
   isNewlyAdded = false,
   onDismissHint,
+  isColumnLayoutUnlocked = false,
 }: KanbanColumnProps) {
   const [showAddCard, setShowAddCard] = useState(false)
   const [newCardName, setNewCardName] = useState('')
@@ -156,91 +158,95 @@ export function KanbanColumn({
             className="font-semibold text-[var(--sea-ink)]"
           />
         </div>
-        <div className="relative flex items-center gap-1 sm:hidden">
-          {hintPhase !== 'hidden' && (
-            <div className={`absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-blue-600 px-2 py-1 text-xs text-white shadow-lg transition-all duration-300 ${hintPhase === 'entering' ? 'opacity-0 translate-y-[-4px] animate-pulse-glow' : hintPhase === 'visible' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-4px]'}`}>
-              Use ↑↓ to reorder
-            </div>
-          )}
-          <button
-            onClick={() => onMoveColumnLeft(column.id)}
-            disabled={columnIndex === 0}
-            className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
-            aria-label="Move column left"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-            </svg>
-          </button>
-          <button
-            onClick={() => onMoveColumnRight(column.id)}
-            disabled={columnIndex === totalColumns - 1}
-            className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
-            aria-label="Move column right"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div className="relative">
-            <button
-              onClick={handleDeleteClick}
-              className={`rounded p-1 ${
-                isConfirmingDelete
-                  ? 'bg-red-100 text-red-600'
-                  : 'text-[var(--sea-ink-soft)] hover:bg-red-50 hover:text-red-600'
-              }`}
-              aria-label="Delete column"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-            {isConfirmingDelete && (
-              <div className="absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-red-600 px-2 py-1 text-xs text-white shadow-lg">
-                Click again to delete
+        {isColumnLayoutUnlocked && (
+          <div className="relative flex items-center gap-1 sm:hidden">
+            {hintPhase !== 'hidden' && (
+              <div className={`absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-blue-600 px-2 py-1 text-xs text-white shadow-lg transition-all duration-300 ${hintPhase === 'entering' ? 'opacity-0 translate-y-[-4px] animate-pulse-glow' : hintPhase === 'visible' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-4px]'}`}>
+                Use ↑↓ to reorder
               </div>
             )}
-          </div>
-        </div>
-        <div className="relative hidden gap-1 sm:flex">
-          {hintPhase !== 'hidden' && (
-            <div className={`absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-blue-600 px-2 py-1 text-xs text-white shadow-lg transition-all duration-300 ${hintPhase === 'entering' ? 'opacity-0 translate-y-[-4px] animate-pulse-glow' : hintPhase === 'visible' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-4px]'}`}>
-              Drag handle to move
-            </div>
-          )}
-          <button
-            {...attributes}
-            {...listeners}
-            className="cursor-grab rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] active:cursor-grabbing"
-            aria-label="Drag handle"
-          >
-            <svg
-              className="h-4 w-4"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
-            </svg>
-          </button>
-          <div className="relative">
             <button
-              ref={deleteButtonRef}
-              onClick={handleDeleteClick}
-              className={`rounded p-1 ${
-                isConfirmingDelete
-                  ? 'bg-red-100 text-red-600'
-                  : 'text-[var(--sea-ink-soft)] hover:bg-red-50 hover:text-red-600'
-              }`}
-              aria-label="Delete column"
+              onClick={() => onMoveColumnLeft(column.id)}
+              disabled={columnIndex === 0}
+              className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label="Move column left"
             >
-              <Trash2 className="h-4 w-4" />
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+              </svg>
             </button>
-            {isConfirmingDelete && (
-              <div className="absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-red-600 px-2 py-1 text-xs text-white shadow-lg">
-                Click again to delete
+            <button
+              onClick={() => onMoveColumnRight(column.id)}
+              disabled={columnIndex === totalColumns - 1}
+              className="rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] disabled:opacity-30 disabled:cursor-not-allowed"
+              aria-label="Move column right"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div className="relative">
+              <button
+                onClick={handleDeleteClick}
+                className={`rounded p-1 ${
+                  isConfirmingDelete
+                    ? 'bg-red-100 text-red-600'
+                    : 'text-[var(--sea-ink-soft)] hover:bg-red-50 hover:text-red-600'
+                }`}
+                aria-label="Delete column"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+              {isConfirmingDelete && (
+                <div className="absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-red-600 px-2 py-1 text-xs text-white shadow-lg">
+                  Click again to delete
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {isColumnLayoutUnlocked && (
+          <div className="relative hidden gap-1 sm:flex">
+            {hintPhase !== 'hidden' && (
+              <div className={`absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-blue-600 px-2 py-1 text-xs text-white shadow-lg transition-all duration-300 ${hintPhase === 'entering' ? 'opacity-0 translate-y-[-4px] animate-pulse-glow' : hintPhase === 'visible' ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[-4px]'}`}>
+                Drag handle to move
               </div>
             )}
+            <button
+              {...attributes}
+              {...listeners}
+              className="cursor-grab rounded p-1 text-[var(--sea-ink-soft)] hover:bg-[var(--link-bg-hover)] active:cursor-grabbing"
+              aria-label="Drag handle"
+            >
+              <svg
+                className="h-4 w-4"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
+              </svg>
+            </button>
+            <div className="relative">
+              <button
+                ref={deleteButtonRef}
+                onClick={handleDeleteClick}
+                className={`rounded p-1 ${
+                  isConfirmingDelete
+                    ? 'bg-red-100 text-red-600'
+                    : 'text-[var(--sea-ink-soft)] hover:bg-red-50 hover:text-red-600'
+                }`}
+                aria-label="Delete column"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+              {isConfirmingDelete && (
+                <div className="absolute right-0 top-full z-10 mt-1 whitespace-nowrap rounded bg-red-600 px-2 py-1 text-xs text-white shadow-lg">
+                  Click again to delete
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       <div className="flex-1 space-y-2 overflow-y-auto p-3">

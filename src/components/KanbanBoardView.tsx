@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, horizontalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
-import { Plus } from 'lucide-react'
+import { Plus, Lock, Unlock } from 'lucide-react'
 import type { kanbanBoard, kanbanColumn, kanbanCard } from '../db/schema'
 import { InlineEdit } from './ui/inline-edit'
 import { KanbanColumn } from './KanbanColumn'
@@ -42,6 +42,7 @@ export function KanbanBoardView({
   const [activeCard, setActiveCard] = useState<typeof kanbanCard.$inferSelect | null>(null)
   const [newlyAddedColumnIds, setNewlyAddedColumnIds] = useState<Set<number>>(new Set())
   const [pendingColumnName, setPendingColumnName] = useState<string | null>(null)
+  const [isColumnLayoutUnlocked, setIsColumnLayoutUnlocked] = useState(false)
 
   useEffect(() => {
     setColumns(board.columns)
@@ -102,7 +103,7 @@ export function KanbanBoardView({
       if (overColumn && activeCard.kanbanColumnId !== overColumn.id) {
         onMoveCard(activeId as number, overColumn.id)
       }
-    } else {
+    } else if (isColumnLayoutUnlocked) {
       const isActiveAColumn = board.columns.some(c => c.id === activeId)
       const isOverAColumn = board.columns.some(c => c.id === overId)
 
@@ -187,11 +188,34 @@ export function KanbanBoardView({
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-[var(--line)] bg-[var(--header-bg)] px-6 py-4">
-        <InlineEdit
-          value={board.name}
-          onSave={(value) => onUpdateBoard(board.id, value)}
-          className="text-2xl font-bold text-[var(--sea-ink)]"
-        />
+        <div className="flex items-center justify-between gap-4">
+          <InlineEdit
+            value={board.name}
+            onSave={(value) => onUpdateBoard(board.id, value)}
+            className="text-2xl font-bold text-[var(--sea-ink)]"
+          />
+          <button
+            onClick={() => setIsColumnLayoutUnlocked(!isColumnLayoutUnlocked)}
+            className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+              isColumnLayoutUnlocked
+                ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                : 'bg-[var(--link-bg)] text-[var(--lagoon)] hover:bg-[var(--link-bg-hover)]'
+            }`}
+            title={isColumnLayoutUnlocked ? 'Lock column layout' : 'Unlock to add, delete, or reorder columns'}
+          >
+            {isColumnLayoutUnlocked ? (
+              <>
+                <Unlock className="h-4 w-4" />
+                <span className="hidden sm:inline">Unlocked</span>
+              </>
+            ) : (
+              <>
+                <Lock className="h-4 w-4" />
+                <span className="hidden sm:inline">Locked</span>
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       <DndContext
@@ -222,21 +246,23 @@ export function KanbanBoardView({
                   onMoveCardRight={handleMoveCardRight}
                   isNewlyAdded={newlyAddedColumnIds.has(column.id)}
                   onDismissHint={() => handleHintDismiss(column.id)}
+                  isColumnLayoutUnlocked={isColumnLayoutUnlocked}
                 />
               ))}
             </SortableContext>
 
-            <div className="flex-shrink-0">
-              {!showAddColumn ? (
-                <Button
-                  variant="outline"
-                  onClick={() => setShowAddColumn(true)}
-                  className="h-fit w-[85vw] sm:w-72 justify-start border-dashed border-[var(--line)] bg-transparent text-[var(--sea-ink-soft)] hover:border-[var(--lagoon)] hover:bg-[var(--link-bg-hover)]"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Column
-                </Button>
-              ) : (
+            {isColumnLayoutUnlocked && (
+              <div className="flex-shrink-0">
+                {!showAddColumn ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAddColumn(true)}
+                    className="h-fit w-[85vw] sm:w-72 justify-start border-dashed border-[var(--line)] bg-transparent text-[var(--sea-ink-soft)] hover:border-[var(--lagoon)] hover:bg-[var(--link-bg-hover)]"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Column
+                  </Button>
+                ) : (
                 <div className="w-[85vw] sm:w-72 rounded-lg border border-[var(--line)] bg-[var(--header-bg)] p-3">
                   <input
                     type="text"
@@ -274,6 +300,7 @@ export function KanbanBoardView({
                 </div>
               )}
             </div>
+            )}
           </div>
         </div>
 
