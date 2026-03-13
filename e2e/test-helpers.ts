@@ -5,6 +5,25 @@ function uniqueName(name: string): string {
   return `${name}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+export async function unlockLayout(page: Page): Promise<void> {
+  // First check if already unlocked by looking for the unlock button
+  const unlockButton = page.getByRole('button', { name: /Unlocked/ })
+  const isAlreadyUnlocked = await unlockButton.isVisible().catch(() => false)
+  
+  if (isAlreadyUnlocked) {
+    return
+  }
+  
+  // Click the lock button to unlock
+  const lockButton = page.getByRole('button', { name: /Locked/ })
+  await lockButton.waitFor({ state: 'visible', timeout: 5000 })
+  await lockButton.click()
+  
+  // Wait for unlock state
+  await unlockButton.waitFor({ state: 'visible', timeout: 5000 })
+  await page.waitForTimeout(300)
+}
+
 export async function openSidePanel(page: Page): Promise<void> {
   await page.setViewportSize({ width: 1400, height: 1200 })
   const menuButton = page.getByRole('button', { name: 'Toggle menu' })
@@ -43,6 +62,10 @@ export async function createBoard(page: Page, boardName: string): Promise<string
 
 export async function createColumn(page: Page, columnName: string): Promise<string> {
   const uniqueColumnName = uniqueName(columnName)
+  
+  // Unlock layout first to show Add Column button
+  await unlockLayout(page)
+  
   const addColumnButton = page.getByRole('button', { name: 'Add Column' })
   await addColumnButton.waitFor({ state: 'visible', timeout: 5000 })
   await addColumnButton.click()
@@ -156,6 +179,9 @@ export async function dragCardToColumn(page: Page, cardName: string, targetColum
 }
 
 export async function dragColumnToPosition(page: Page, columnName: string, targetColumnName: string) {
+  // Unlock layout first to show drag handles
+  await unlockLayout(page)
+  
   const handle = await getColumnDragHandle(page, columnName)
   const targetColumn = await getColumnByName(page, targetColumnName)
   
