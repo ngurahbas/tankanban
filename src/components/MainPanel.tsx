@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import { Menu, LogOut } from 'lucide-react'
 import { logout } from '../lib/auth.ts'
 import { useNavigate } from '@tanstack/react-router'
+import { ThemeToggle } from './ThemeToggle.tsx'
 
 interface MainPanelProps {
   onMenuToggle: () => void
@@ -73,14 +74,22 @@ export default function MainPanel({ onMenuToggle, user }: MainPanelProps) {
           </button>
 
           {isMenuOpen && (
-            <div className="absolute right-0 bottom-full mb-2 w-40 rounded-lg border border-[var(--line)] bg-white py-1 shadow-lg dark:bg-slate-800 sm:bottom-auto sm:top-full sm:mt-2">
-              <button
-                onClick={handleLogout}
-                className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-slate-100 dark:text-red-400 dark:hover:bg-slate-700"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </button>
+            <div className="absolute left-0 bottom-full mb-2 w-64 rounded-lg border border-[var(--line)] bg-[var(--surface-strong)] py-1 shadow-lg backdrop-blur-sm dark:bg-slate-800 sm:left-auto sm:right-0 sm:bottom-auto sm:top-full sm:mt-2">
+              <div className="px-4 py-2 text-sm font-medium text-[var(--sea-ink)] border-b border-[var(--line)]">
+                {displayEmail}
+              </div>
+              <div className="py-1">
+                <ThemeToggle />
+              </div>
+              <div className="border-t border-[var(--line)] py-1">
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-[var(--link-bg-hover)] dark:text-red-400"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </div>
             </div>
           )}
         </div>
