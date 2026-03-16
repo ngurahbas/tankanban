@@ -55,7 +55,7 @@ export function KanbanCard({ card, onUpdate, onDelete, columnIndex, totalColumns
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: card.id })
+  } = useSortable({ id: `card-${card.id}` })
 
   const style = {
     transform: CSS.Transform.toString(transform),

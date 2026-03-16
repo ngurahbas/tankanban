@@ -73,9 +73,13 @@ export function KanbanBoardView({
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
-    const card = board.cards.find(c => c.id === active.id)
-    if (card) {
-      setActiveCard(card)
+    const activeIdStr = String(active.id)
+    if (activeIdStr.startsWith('card-')) {
+      const cardId = Number(activeIdStr.replace('card-', ''))
+      const card = board.cards.find(c => c.id === cardId)
+      if (card) {
+        setActiveCard(card)
+      }
     }
   }
 
@@ -85,37 +89,42 @@ export function KanbanBoardView({
 
     if (!over) return
 
-    const activeId = active.id
-    const overId = over.id
+    const activeIdStr = String(active.id)
+    const overIdStr = String(over.id)
 
-    if (activeId === overId) return
+    if (activeIdStr === overIdStr) return
 
-    const isActiveACard = board.cards.some(c => c.id === activeId)
-    const isOverACard = board.cards.some(c => c.id === overId)
-    const isOverAColumn = board.columns.some(c => c.id === overId)
+    const isActiveACard = activeIdStr.startsWith('card-')
+    const isOverACard = overIdStr.startsWith('card-')
+    const isOverAColumn = overIdStr.startsWith('column-')
 
     if (isActiveACard && (isOverACard || isOverAColumn)) {
-      const activeCard = board.cards.find(c => c.id === activeId)!
-      const overColumn = isOverAColumn
-        ? board.columns.find(c => c.id === overId)!
-        : board.columns.find(c => c.id === board.cards.find(c => c.id === overId)?.kanbanColumnId)
+      const cardId = Number(activeIdStr.replace('card-', ''))
+      const activeCard = board.cards.find(c => c.id === cardId)!
 
-      if (overColumn && activeCard.kanbanColumnId !== overColumn.id) {
-        onMoveCard(activeId as number, overColumn.id)
+      let overColumnId: number
+      if (isOverAColumn) {
+        overColumnId = Number(overIdStr.replace('column-', ''))
+      } else {
+        const overCardId = Number(overIdStr.replace('card-', ''))
+        const overCard = board.cards.find(c => c.id === overCardId)
+        overColumnId = overCard?.kanbanColumnId!
       }
-    } else if (isColumnLayoutUnlocked) {
-      const isActiveAColumn = board.columns.some(c => c.id === activeId)
-      const isOverAColumn = board.columns.some(c => c.id === overId)
 
-      if (isActiveAColumn && isOverAColumn) {
-        const oldIndex = columns.findIndex(c => c.id === activeId)
-        const newIndex = columns.findIndex(c => c.id === overId)
+      if (activeCard.kanbanColumnId !== overColumnId) {
+        onMoveCard(cardId, overColumnId)
+      }
+    } else if (isColumnLayoutUnlocked && activeIdStr.startsWith('column-') && overIdStr.startsWith('column-')) {
+      const activeColumnId = Number(activeIdStr.replace('column-', ''))
+      const overColumnId = Number(overIdStr.replace('column-', ''))
 
-        if (oldIndex !== newIndex) {
-          const newColumns = arrayMove(columns, oldIndex, newIndex)
-          setColumns(newColumns)
-          onReorderColumns(board.id, newColumns.map(c => c.id))
-        }
+      const oldIndex = columns.findIndex(c => c.id === activeColumnId)
+      const newIndex = columns.findIndex(c => c.id === overColumnId)
+
+      if (oldIndex !== newIndex) {
+        const newColumns = arrayMove(columns, oldIndex, newIndex)
+        setColumns(newColumns)
+        onReorderColumns(board.id, newColumns.map(c => c.id))
       }
     }
   }
@@ -227,7 +236,7 @@ export function KanbanBoardView({
       >
         <div className="kanban-gradient flex-1 overflow-x-auto overflow-y-auto p-4 sm:p-6">
           <div className="flex flex-wrap gap-3 sm:gap-4">
-            <SortableContext items={columns.map(c => c.id)} strategy={horizontalListSortingStrategy}>
+            <SortableContext items={columns.map(c => `column-${c.id}`)} strategy={horizontalListSortingStrategy}>
               {columns.map((column, index) => (
                 <KanbanColumn
                   key={column.id}

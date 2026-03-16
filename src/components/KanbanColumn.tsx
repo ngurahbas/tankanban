@@ -124,7 +124,7 @@ export function KanbanColumn({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: column.id })
+  } = useSortable({ id: `column-${column.id}`, disabled: !isColumnLayoutUnlocked })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -250,7 +250,7 @@ export function KanbanColumn({
       </div>
 
       <div className="flex-1 space-y-2 overflow-y-auto p-3">
-        <SortableContext items={cards.map(c => c.id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={cards.map(c => `card-${c.id}`)} strategy={verticalListSortingStrategy}>
           {cards.map((card) => (
             <KanbanCard
               key={card.id}
