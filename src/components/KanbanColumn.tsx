@@ -7,6 +7,7 @@ import type { kanbanColumn, kanbanCard } from '../db/schema'
 import { InlineEdit } from './ui/inline-edit'
 import { KanbanCard } from './KanbanCard'
 import { Button } from './ui/button'
+import { updateColumn, deleteColumn, createCard } from '../lib/kanban.ts'
 
 const pulseGlowStyles = `
 @keyframes pulse-glow {
@@ -21,17 +22,14 @@ const pulseGlowStyles = `
 interface KanbanColumnProps {
   column: typeof kanbanColumn.$inferSelect
   cards: typeof kanbanCard.$inferSelect[]
-  onUpdateColumn: (columnId: number, name: string) => void
-  onDeleteColumn: (columnId: number) => void
-  onCreateCard: (columnId: number, name: string) => void
-  onUpdateCard: (cardId: number, data: { name?: string; description?: string }) => void
-  onDeleteCard: (cardId: number) => void
+  boardId: number
   columnIndex: number
   totalColumns: number
   onMoveColumnLeft: (columnId: number) => void
   onMoveColumnRight: (columnId: number) => void
   onMoveCardLeft: (cardId: number) => void
   onMoveCardRight: (cardId: number) => void
+  onColumnUpdated: () => void
   isNewlyAdded?: boolean
   onDismissHint?: () => void
   isColumnLayoutUnlocked?: boolean
@@ -40,17 +38,14 @@ interface KanbanColumnProps {
 export function KanbanColumn({
   column,
   cards,
-  onUpdateColumn,
-  onDeleteColumn,
-  onCreateCard,
-  onUpdateCard,
-  onDeleteCard,
+  boardId,
   columnIndex,
   totalColumns,
   onMoveColumnLeft,
   onMoveColumnRight,
   onMoveCardLeft,
   onMoveCardRight,
+  onColumnUpdated,
   isNewlyAdded = false,
   onDismissHint,
   isColumnLayoutUnlocked = false,
@@ -62,6 +57,33 @@ export function KanbanColumn({
     isNewlyAdded ? 'entering' : 'hidden'
   )
   const deleteButtonRef = useRef<HTMLButtonElement>(null)
+
+  const handleUpdateColumn = async (columnId: number, name: string) => {
+    try {
+      await updateColumn({ data: { id: columnId, name } })
+      onColumnUpdated()
+    } catch (error) {
+      console.error('Failed to update column:', error)
+    }
+  }
+
+  const handleDeleteColumn = async (columnId: number) => {
+    try {
+      await deleteColumn({ data: columnId })
+      onColumnUpdated()
+    } catch (error) {
+      console.error('Failed to delete column:', error)
+    }
+  }
+
+  const handleCreateCard = async (columnId: number, name: string) => {
+    try {
+      await createCard({ data: { columnId, boardId, name } })
+      onColumnUpdated()
+    } catch (error) {
+      console.error('Failed to create card:', error)
+    }
+  }
 
   useEffect(() => {
     if (!isConfirmingDelete) return
@@ -111,7 +133,7 @@ export function KanbanColumn({
 
   const handleDeleteClick = () => {
     if (isConfirmingDelete) {
-      onDeleteColumn(column.id)
+      handleDeleteColumn(column.id)
     } else {
       setIsConfirmingDelete(true)
     }
@@ -134,7 +156,7 @@ export function KanbanColumn({
 
   const handleAddCard = () => {
     if (newCardName.trim()) {
-      onCreateCard(column.id, newCardName.trim())
+      handleCreateCard(column.id, newCardName.trim())
       setNewCardName('')
       setShowAddCard(false)
     }
@@ -154,7 +176,7 @@ export function KanbanColumn({
         <div className="flex-1">
           <InlineEdit
             value={column.name}
-            onSave={(value) => onUpdateColumn(column.id, value)}
+            onSave={(value) => handleUpdateColumn(column.id, value)}
             className="font-semibold text-[var(--sea-ink)]"
           />
         </div>
@@ -255,12 +277,11 @@ export function KanbanColumn({
             <KanbanCard
               key={card.id}
               card={card}
-              onUpdate={onUpdateCard}
-              onDelete={onDeleteCard}
               columnIndex={columnIndex}
               totalColumns={totalColumns}
               onMoveLeft={onMoveCardLeft}
               onMoveRight={onMoveCardRight}
+              onCardUpdated={onColumnUpdated}
             />
           ))}
         </SortableContext>

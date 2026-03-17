@@ -7,7 +7,7 @@ interface SidePanelProps {
   boards: typeof kanbanBoard.$inferSelect[]
   isOpen: boolean
   onClose: () => void
-  onBoardCreated: () => void
+  onBoardCreated?: () => void
 }
 
 export default function SidePanel({ boards, isOpen, onClose, onBoardCreated }: SidePanelProps) {
@@ -26,7 +26,7 @@ export default function SidePanel({ boards, isOpen, onClose, onBoardCreated }: S
       const board = await createBoard({ data: newBoardName.trim() })
       setNewBoardName('')
       setShowAddForm(false)
-      onBoardCreated()
+      onBoardCreated?.()
       navigate({ to: '/kanban/$kanbanId', params: { kanbanId: String(board.id) } })
       onClose()
     } catch (error) {

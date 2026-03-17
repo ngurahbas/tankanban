@@ -4,20 +4,38 @@ import { CSS } from '@dnd-kit/utilities'
 import { Trash2 } from 'lucide-react'
 import type { kanbanCard } from '../db/schema'
 import { InlineEdit } from './ui/inline-edit'
+import { updateCard, deleteCard } from '../lib/kanban.ts'
 
 interface KanbanCardProps {
   card: typeof kanbanCard.$inferSelect
-  onUpdate: (cardId: number, data: { name?: string; description?: string }) => void
-  onDelete: (cardId: number) => void
   columnIndex: number
   totalColumns: number
   onMoveLeft: (cardId: number) => void
   onMoveRight: (cardId: number) => void
+  onCardUpdated: () => void
 }
 
-export function KanbanCard({ card, onUpdate, onDelete, columnIndex, totalColumns, onMoveLeft, onMoveRight }: KanbanCardProps) {
+export function KanbanCard({ card, columnIndex, totalColumns, onMoveLeft, onMoveRight, onCardUpdated }: KanbanCardProps) {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
   const deleteButtonRef = useRef<HTMLButtonElement>(null)
+
+  const handleUpdate = async (cardId: number, data: { name?: string; description?: string }) => {
+    try {
+      await updateCard({ data: { id: cardId, ...data } })
+      onCardUpdated()
+    } catch (error) {
+      console.error('Failed to update card:', error)
+    }
+  }
+
+  const handleDelete = async (cardId: number) => {
+    try {
+      await deleteCard({ data: cardId })
+      onCardUpdated()
+    } catch (error) {
+      console.error('Failed to delete card:', error)
+    }
+  }
 
   useEffect(() => {
     if (!isConfirmingDelete) return
@@ -42,7 +60,7 @@ export function KanbanCard({ card, onUpdate, onDelete, columnIndex, totalColumns
 
   const handleDeleteClick = () => {
     if (isConfirmingDelete) {
-      onDelete(card.id)
+      handleDelete(card.id)
     } else {
       setIsConfirmingDelete(true)
     }
@@ -75,7 +93,7 @@ export function KanbanCard({ card, onUpdate, onDelete, columnIndex, totalColumns
         <div className="flex-1">
           <InlineEdit
             value={card.name}
-            onSave={(value) => onUpdate(card.id, { name: value })}
+            onSave={(value) => handleUpdate(card.id, { name: value })}
             className="font-medium text-[var(--sea-ink)]"
           />
         </div>
@@ -117,7 +135,7 @@ export function KanbanCard({ card, onUpdate, onDelete, columnIndex, totalColumns
       </div>
       <InlineEdit
         value={card.description ?? ''}
-        onSave={(value) => onUpdate(card.id, { description: value })}
+        onSave={(value) => handleUpdate(card.id, { description: value })}
         multiline
         className="text-sm text-[var(--sea-ink-soft)]"
         placeholder="Add description..."

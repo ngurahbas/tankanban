@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
+import { useNavigate, useParams } from '@tanstack/react-router'
 import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, horizontalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import { Plus, Lock, Unlock } from 'lucide-react'
@@ -7,35 +8,21 @@ import { InlineEdit } from './ui/inline-edit'
 import { KanbanColumn } from './KanbanColumn'
 import { KanbanCard } from './KanbanCard'
 import { Button } from './ui/button'
+import { getBoard, updateBoard, createColumn, moveCard } from '../lib/kanban.ts'
 
 interface KanbanBoardViewProps {
-  board: typeof kanbanBoard.$inferSelect & {
+  initialBoard: typeof kanbanBoard.$inferSelect & {
     columns: typeof kanbanColumn.$inferSelect[]
     cards: typeof kanbanCard.$inferSelect[]
   }
-  onUpdateBoard: (boardId: number, name: string) => void
-  onCreateColumn: (boardId: number, name: string) => void
-  onUpdateColumn: (columnId: number, name: string) => void
-  onDeleteColumn: (columnId: number) => void
-  onCreateCard: (columnId: number, boardId: number, name: string) => void
-  onUpdateCard: (cardId: number, data: { name?: string; description?: string }) => void
-  onDeleteCard: (cardId: number) => void
-  onMoveCard: (cardId: number, targetColumnId: number) => void
-  onReorderColumns: (boardId: number, columnIds: number[]) => void
 }
 
 export function KanbanBoardView({
-  board,
-  onUpdateBoard,
-  onCreateColumn,
-  onUpdateColumn,
-  onDeleteColumn,
-  onCreateCard,
-  onUpdateCard,
-  onDeleteCard,
-  onMoveCard,
-  onReorderColumns,
+  initialBoard,
 }: KanbanBoardViewProps) {
+  const navigate = useNavigate()
+  const params = useParams({ from: '/kanban/$kanbanId' })
+  const [board, setBoard] = useState(initialBoard)
   const [showAddColumn, setShowAddColumn] = useState(false)
   const [newColumnName, setNewColumnName] = useState('')
   const [columns, setColumns] = useState(board.columns)
@@ -43,6 +30,59 @@ export function KanbanBoardView({
   const [newlyAddedColumnIds, setNewlyAddedColumnIds] = useState<Set<number>>(new Set())
   const [pendingColumnName, setPendingColumnName] = useState<string | null>(null)
   const [isColumnLayoutUnlocked, setIsColumnLayoutUnlocked] = useState(false)
+
+  const refreshBoard = useCallback(async () => {
+    try {
+      const newBoard = await getBoard({ data: Number(params.kanbanId) })
+      setBoard(newBoard)
+      setColumns(newBoard.columns)
+    } catch (error) {
+      console.error('Failed to refresh board:', error)
+      navigate({ to: '/kanban' })
+    }
+  }, [params.kanbanId, navigate])
+
+  useEffect(() => {
+    setBoard(initialBoard)
+    setColumns(initialBoard.columns)
+  }, [initialBoard])
+
+  const handleUpdateBoard = async (boardId: number, name: string) => {
+    try {
+      await updateBoard({ data: { id: boardId, name } })
+      await refreshBoard()
+    } catch (error) {
+      console.error('Failed to update board:', error)
+    }
+  }
+
+  const handleCreateColumn = async (boardId: number, name: string) => {
+    try {
+      await createColumn({ data: { boardId, name } })
+      await refreshBoard()
+    } catch (error) {
+      console.error('Failed to create column:', error)
+    }
+  }
+
+  const handleMoveCard = async (cardId: number, targetColumnId: number) => {
+    try {
+      await moveCard({ data: { cardId, targetColumnId } })
+      await refreshBoard()
+    } catch (error) {
+      console.error('Failed to move card:', error)
+    }
+  }
+
+  const handleReorderColumns = async (boardId: number, columnIds: number[]) => {
+    try {
+      const columnsOrder = columnIds.join(',')
+      await updateBoard({ data: { id: boardId, name: board.name, columnsOrder } })
+      await refreshBoard()
+    } catch (error) {
+      console.error('Failed to reorder columns:', error)
+    }
+  }
 
   useEffect(() => {
     setColumns(board.columns)
@@ -112,7 +152,7 @@ export function KanbanBoardView({
       }
 
       if (activeCard.kanbanColumnId !== overColumnId) {
-        onMoveCard(cardId, overColumnId)
+        handleMoveCard(cardId, overColumnId)
       }
     } else if (isColumnLayoutUnlocked && activeIdStr.startsWith('column-') && overIdStr.startsWith('column-')) {
       const activeColumnId = Number(activeIdStr.replace('column-', ''))
@@ -124,7 +164,7 @@ export function KanbanBoardView({
       if (oldIndex !== newIndex) {
         const newColumns = arrayMove(columns, oldIndex, newIndex)
         setColumns(newColumns)
-        onReorderColumns(board.id, newColumns.map(c => c.id))
+        handleReorderColumns(board.id, newColumns.map(c => c.id))
       }
     }
   }
@@ -133,7 +173,7 @@ export function KanbanBoardView({
     if (newColumnName.trim()) {
       const name = newColumnName.trim()
       setPendingColumnName(name)
-      onCreateColumn(board.id, name)
+      handleCreateColumn(board.id, name)
       setNewColumnName('')
       setShowAddColumn(false)
     }
@@ -155,7 +195,7 @@ export function KanbanBoardView({
     if (currentColumnIndex <= 0) return
 
     const targetColumnId = columns[currentColumnIndex - 1].id
-    onMoveCard(cardId, targetColumnId)
+    handleMoveCard(cardId, targetColumnId)
   }
 
   const handleMoveCardRight = (cardId: number) => {
@@ -166,7 +206,7 @@ export function KanbanBoardView({
     if (currentColumnIndex >= columns.length - 1) return
 
     const targetColumnId = columns[currentColumnIndex + 1].id
-    onMoveCard(cardId, targetColumnId)
+    handleMoveCard(cardId, targetColumnId)
   }
 
   const handleMoveColumnLeft = (columnId: number) => {
@@ -175,7 +215,7 @@ export function KanbanBoardView({
 
     const newColumns = arrayMove(columns, currentIndex, currentIndex - 1)
     setColumns(newColumns)
-    onReorderColumns(board.id, newColumns.map(c => c.id))
+    handleReorderColumns(board.id, newColumns.map(c => c.id))
   }
 
   const handleMoveColumnRight = (columnId: number) => {
@@ -184,7 +224,7 @@ export function KanbanBoardView({
 
     const newColumns = arrayMove(columns, currentIndex, currentIndex + 1)
     setColumns(newColumns)
-    onReorderColumns(board.id, newColumns.map(c => c.id))
+    handleReorderColumns(board.id, newColumns.map(c => c.id))
   }
 
   const getColumnCards = useCallback(
@@ -200,7 +240,7 @@ export function KanbanBoardView({
         <div className="flex items-center justify-between gap-4">
           <InlineEdit
             value={board.name}
-            onSave={(value) => onUpdateBoard(board.id, value)}
+            onSave={(value) => handleUpdateBoard(board.id, value)}
             className="text-2xl font-bold text-[var(--sea-ink)]"
           />
           <button
@@ -242,17 +282,14 @@ export function KanbanBoardView({
                   key={column.id}
                   column={column}
                   cards={getColumnCards(column.id)}
-                  onUpdateColumn={onUpdateColumn}
-                  onDeleteColumn={onDeleteColumn}
-                  onCreateCard={(columnId, name) => onCreateCard(columnId, board.id, name)}
-                  onUpdateCard={onUpdateCard}
-                  onDeleteCard={onDeleteCard}
+                  boardId={board.id}
                   columnIndex={index}
                   totalColumns={columns.length}
                   onMoveColumnLeft={handleMoveColumnLeft}
                   onMoveColumnRight={handleMoveColumnRight}
                   onMoveCardLeft={handleMoveCardLeft}
                   onMoveCardRight={handleMoveCardRight}
+                  onColumnUpdated={refreshBoard}
                   isNewlyAdded={newlyAddedColumnIds.has(column.id)}
                   onDismissHint={() => handleHintDismiss(column.id)}
                   isColumnLayoutUnlocked={isColumnLayoutUnlocked}
@@ -317,12 +354,11 @@ export function KanbanBoardView({
           {activeCard ? (
             <KanbanCard
               card={activeCard}
-              onUpdate={() => {}}
-              onDelete={() => {}}
               columnIndex={0}
               totalColumns={1}
               onMoveLeft={() => {}}
               onMoveRight={() => {}}
+              onCardUpdated={() => {}}
             />
           ) : null}
         </DragOverlay>
