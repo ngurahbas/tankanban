@@ -25,12 +25,13 @@ export function InlineEdit({
     if (isEditing && inputRef.current) {
       inputRef.current.focus()
       if (multiline && inputRef.current instanceof HTMLTextAreaElement) {
-        inputRef.current.setSelectionRange(editValue.length, editValue.length)
+        const len = editValue.length
+        inputRef.current.setSelectionRange(len, len)
       } else if (inputRef.current instanceof HTMLInputElement) {
         inputRef.current.select()
       }
     }
-  }, [isEditing, editValue, multiline])
+  }, [isEditing, multiline])
 
   useEffect(() => {
     setEditValue(value)
