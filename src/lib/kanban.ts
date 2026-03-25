@@ -262,23 +262,34 @@ export const createCard = createServerFn({ method: 'POST' })
   .inputValidator((data: { columnId: number; boardId: number; name: string; description?: string }) => data)
   .handler(async (ctx) => {
     const user = await validateSession()
-    
+
     if (!user) {
       throw new ForbiddenError('Authentication required')
     }
-    
+
     const [board] = await db
       .select()
       .from(kanbanBoard)
       .where(eq(kanbanBoard.id, ctx.data.boardId))
       .limit(1)
-    
+
     if (!board) {
       throw new Error('Board not found')
     }
-    
+
     if (board.userId !== user.id) {
       throw new ForbiddenError('You do not have access to this board')
+    }
+
+    // Validate column belongs to this board
+    const [column] = await db
+      .select()
+      .from(kanbanColumn)
+      .where(eq(kanbanColumn.id, ctx.data.columnId))
+      .limit(1)
+
+    if (!column || column.kanbanBoardId !== ctx.data.boardId) {
+      throw new ForbiddenError('Invalid column for this board')
     }
 
     const [card] = await db
@@ -374,29 +385,40 @@ export const moveCard = createServerFn({ method: 'POST' })
   .inputValidator((data: { cardId: number; targetColumnId: number }) => data)
   .handler(async (ctx) => {
     const user = await validateSession()
-    
+
     if (!user) {
       throw new ForbiddenError('Authentication required')
     }
-    
+
     const [card] = await db
       .select()
       .from(kanbanCard)
       .where(eq(kanbanCard.id, ctx.data.cardId))
       .limit(1)
-    
+
     if (!card) {
       throw new Error('Card not found')
     }
-    
+
     const [board] = await db
       .select()
       .from(kanbanBoard)
       .where(eq(kanbanBoard.id, card.kanbanBoardId))
       .limit(1)
-    
+
     if (!board || board.userId !== user.id) {
       throw new ForbiddenError('You do not have access to this board')
+    }
+
+    // Validate target column belongs to this board
+    const [targetColumn] = await db
+      .select()
+      .from(kanbanColumn)
+      .where(eq(kanbanColumn.id, ctx.data.targetColumnId))
+      .limit(1)
+
+    if (!targetColumn || targetColumn.kanbanBoardId !== card.kanbanBoardId) {
+      throw new ForbiddenError('Invalid target column for this board')
     }
 
     const [updatedCard] = await db
