@@ -1,11 +1,12 @@
 import { defineConfig, devices } from '@playwright/test'
+import { CI } from './src/config.ts'
 
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  forbidOnly: !!CI,
+  retries: CI ? 2 : 0,
+  workers: CI ? 1 : undefined,
   reporter: 'list',
   
   use: {
@@ -40,7 +41,7 @@ export default defineConfig({
   webServer: {
     command: 'APP_BASE_URL=http://localhost:3333 KEYCLOAK_BASE_URL=http://localhost:8080/realms/tankanban KEYCLOAK_CLIENT_ID=tankanban KEYCLOAK_CLIENT_SECRET=tankanban-client-secret-12345 bun run dev -- --port 3333',
     url: 'http://localhost:3333',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !CI,
     timeout: 30000,
   },
 

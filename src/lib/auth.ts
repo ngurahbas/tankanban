@@ -5,26 +5,24 @@ import { eq, and } from 'drizzle-orm'
 import { Google, OAuth2Client, generateCodeVerifier, generateState, CodeChallengeMethod } from 'arctic'
 import { encodeBase32LowerCase } from '@oslojs/encoding'
 import { getCookie, setCookie, deleteCookie } from '@tanstack/react-start/server'
-
-const appBaseUrl = process.env.APP_BASE_URL || 'http://localhost:3000'
+import { APP_BASE_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, KEYCLOAK_BASE_URL, KEYCLOAK_CLIENT_ID, KEYCLOAK_CLIENT_SECRET, IS_PRODUCTION } from '../config.ts'
 
 const google = new Google(
-  process.env.GOOGLE_CLIENT_ID!,
-  process.env.GOOGLE_CLIENT_SECRET!,
-  `${appBaseUrl}/auth/callback/google`
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  `${APP_BASE_URL}/auth/callback/google`
 )
 
-const keycloakBaseUrl = process.env.KEYCLOAK_BASE_URL || 'http://localhost:8080/realms/tankanban'
 const keycloak = new OAuth2Client(
-  process.env.KEYCLOAK_CLIENT_ID || 'tankanban',
-  process.env.KEYCLOAK_CLIENT_SECRET || 'tankanban-client-secret-12345',
-  `${appBaseUrl}/auth/callback/keycloak`
+  KEYCLOAK_CLIENT_ID,
+  KEYCLOAK_CLIENT_SECRET,
+  `${APP_BASE_URL}/auth/callback/keycloak`
 )
 
 const keycloakEndpoints = {
-  authorize: `${keycloakBaseUrl}/protocol/openid-connect/auth`,
-  token: `${keycloakBaseUrl}/protocol/openid-connect/token`,
-  userinfo: `${keycloakBaseUrl}/protocol/openid-connect/userinfo`,
+  authorize: `${KEYCLOAK_BASE_URL}/protocol/openid-connect/auth`,
+  token: `${KEYCLOAK_BASE_URL}/protocol/openid-connect/token`,
+  userinfo: `${KEYCLOAK_BASE_URL}/protocol/openid-connect/userinfo`,
 }
 
 // Session configuration
@@ -96,7 +94,7 @@ export const getGoogleAuthUrl = createServerFn({ method: 'GET' })
       maxAge: 600,
       path: '/',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: IS_PRODUCTION,
       sameSite: 'lax',
     })
 
@@ -104,7 +102,7 @@ export const getGoogleAuthUrl = createServerFn({ method: 'GET' })
       maxAge: 600,
       path: '/',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: IS_PRODUCTION,
       sameSite: 'lax',
     })
 
@@ -127,7 +125,7 @@ export const getKeycloakAuthUrl = createServerFn({ method: 'GET' })
       maxAge: 600,
       path: '/',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: IS_PRODUCTION,
       sameSite: 'lax',
     })
 
@@ -135,7 +133,7 @@ export const getKeycloakAuthUrl = createServerFn({ method: 'GET' })
       maxAge: 600,
       path: '/',
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: IS_PRODUCTION,
       sameSite: 'lax',
     })
 
@@ -244,7 +242,7 @@ export const handleGoogleCallback = createServerFn({ method: 'GET' })
         expires: expiresAt,
         path: '/',
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: IS_PRODUCTION,
         sameSite: 'lax',
       })
 
@@ -351,7 +349,7 @@ export const handleKeycloakCallback = createServerFn({ method: 'GET' })
         expires: expiresAt,
         path: '/',
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: IS_PRODUCTION,
         sameSite: 'lax',
       })
 
