@@ -166,7 +166,7 @@ export const handleGoogleCallback = createServerFn({ method: 'GET' })
         tokens = await google.validateAuthorizationCode(code, storedCodeVerifier)
       } catch (err) {
         console.error('Failed to validate authorization code:', err)
-        throw new Error('Failed to validate authorization code')
+        throw new Error('Failed to validate authorization code', { cause: err })
       }
 
       // Fetch user info from Google
@@ -279,7 +279,7 @@ export const handleKeycloakCallback = createServerFn({ method: 'GET' })
         )
       } catch (err) {
         console.error('Failed to validate authorization code:', err)
-        throw new Error('Failed to validate authorization code')
+        throw new Error('Failed to validate authorization code', { cause: err })
       }
 
       const keycloakUserResponse = await fetch(keycloakEndpoints.userinfo, {

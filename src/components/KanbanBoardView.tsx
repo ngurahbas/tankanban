@@ -148,7 +148,8 @@ export function KanbanBoardView({
       } else {
         const overCardId = Number(overIdStr.replace('card-', ''))
         const overCard = board.cards.find(c => c.id === overCardId)
-        overColumnId = overCard?.kanbanColumnId!
+        if (!overCard) return
+        overColumnId = overCard.kanbanColumnId
       }
 
       if (activeCard.kanbanColumnId !== overColumnId) {
