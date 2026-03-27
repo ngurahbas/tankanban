@@ -58,6 +58,13 @@ export function KanbanColumn({
   )
   const deleteButtonRef = useRef<HTMLButtonElement>(null)
 
+  // Sync hintPhase when isNewlyAdded prop changes
+  useEffect(() => {
+    if (isNewlyAdded && hintPhase === 'hidden') {
+      setHintPhase('entering')
+    }
+  }, [isNewlyAdded, hintPhase])
+
   const handleUpdateColumn = async (columnId: number, name: string) => {
     try {
       await updateColumn({ data: { id: columnId, name } })

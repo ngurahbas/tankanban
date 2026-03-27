@@ -179,13 +179,13 @@ export function KanbanBoardView({
     }
   }
 
-  const handleHintDismiss = (columnId: number) => {
+  const handleHintDismiss = useCallback((columnId: number) => {
     setNewlyAddedColumnIds(prev => {
       const next = new Set(prev)
       next.delete(columnId)
       return next
     })
-  }
+  }, [])
 
   const handleMoveCardLeft = (cardId: number) => {
     const card = board.cards.find(c => c.id === cardId)
