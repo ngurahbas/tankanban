@@ -1,8 +1,9 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { handleKeycloakCallback } from '../../../lib/auth.ts'
+import { KeycloakCallbackPage } from './-keycloak-component'
 
 export const Route = createFileRoute('/auth/callback/keycloak')({
-  component: CallbackPage,
+  component: KeycloakCallbackPage,
   loader: async ({ location }) => {
     const searchParams = new URLSearchParams(location.search)
     const code = searchParams.get('code')
@@ -25,14 +26,3 @@ export const Route = createFileRoute('/auth/callback/keycloak')({
     throw redirect({ to: '/kanban' })
   },
 })
-
-function CallbackPage() {
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <div className="text-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-gray-900"></div>
-        <p className="mt-4">Completing sign in...</p>
-      </div>
-    </div>
-  )
-}

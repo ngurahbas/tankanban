@@ -11,7 +11,6 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as KanbanRouteImport } from './routes/kanban'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as KanbanIndexRouteImport } from './routes/kanban/index'
 import { Route as KanbanKanbanIdRouteImport } from './routes/kanban.$kanbanId'
@@ -26,11 +25,6 @@ const LoginRoute = LoginRouteImport.update({
 const KanbanRoute = KanbanRouteImport.update({
   id: '/kanban',
   path: '/kanban',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -61,7 +55,6 @@ const AuthCallbackGoogleRoute = AuthCallbackGoogleRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/kanban': typeof KanbanRouteWithChildren
   '/login': typeof LoginRoute
   '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
@@ -71,7 +64,6 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/login': typeof LoginRoute
   '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
   '/kanban': typeof KanbanIndexRoute
@@ -81,7 +73,6 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/about': typeof AboutRoute
   '/kanban': typeof KanbanRouteWithChildren
   '/login': typeof LoginRoute
   '/kanban/$kanbanId': typeof KanbanKanbanIdRoute
@@ -93,7 +84,6 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/about'
     | '/kanban'
     | '/login'
     | '/kanban/$kanbanId'
@@ -103,7 +93,6 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/about'
     | '/login'
     | '/kanban/$kanbanId'
     | '/kanban'
@@ -112,7 +101,6 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/about'
     | '/kanban'
     | '/login'
     | '/kanban/$kanbanId'
@@ -123,7 +111,6 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AboutRoute: typeof AboutRoute
   KanbanRoute: typeof KanbanRouteWithChildren
   LoginRoute: typeof LoginRoute
   AuthCallbackGoogleRoute: typeof AuthCallbackGoogleRoute
@@ -144,13 +131,6 @@ declare module '@tanstack/react-router' {
       path: '/kanban'
       fullPath: '/kanban'
       preLoaderRoute: typeof KanbanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -206,7 +186,6 @@ const KanbanRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AboutRoute: AboutRoute,
   KanbanRoute: KanbanRouteWithChildren,
   LoginRoute: LoginRoute,
   AuthCallbackGoogleRoute: AuthCallbackGoogleRoute,

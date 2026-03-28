@@ -31,7 +31,7 @@ export function InlineEdit({
         inputRef.current.select()
       }
     }
-  }, [isEditing, multiline])
+  }, [isEditing, multiline, editValue.length])
 
   useEffect(() => {
     setEditValue(value)
