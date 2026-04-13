@@ -1,10 +1,23 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { getGoogleAuthUrl, getKeycloakAuthUrl } from '../lib/auth.ts'
 import { Button } from '../components/ui/button.tsx'
 
 export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [loadingProvider, setLoadingProvider] = useState<'google' | 'keycloak' | null>(null)
+
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        // Page was restored from bfcache, reset loading states
+        setIsLoading(false)
+        setLoadingProvider(null)
+      }
+    }
+
+    window.addEventListener('pageshow', handlePageShow)
+    return () => window.removeEventListener('pageshow', handlePageShow)
+  }, [])
 
   const handleGoogleLogin = async () => {
     setIsLoading(true)
