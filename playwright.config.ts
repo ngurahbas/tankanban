@@ -14,6 +14,9 @@ export default defineConfig({
     trace: 'on-first-retry',
     actionTimeout: 5000,
     navigationTimeout: 5000,
+    launchOptions: {
+      slowMo: process.env.PLAYWRIGHT_SLOW_MO ? parseInt(process.env.PLAYWRIGHT_SLOW_MO, 10) : undefined,
+    },
   },
 
   projects: [
