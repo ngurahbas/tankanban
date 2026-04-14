@@ -9,16 +9,6 @@ import { KanbanCard } from './KanbanCard'
 import { Button } from './ui/button'
 import { updateColumn, deleteColumn, createCard } from '../lib/kanban.ts'
 
-const pulseGlowStyles = `
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); transform: scale(1); }
-  50% { box-shadow: 0 0 20px 4px rgba(37, 99, 235, 0.4); transform: scale(1.02); }
-}
-.animate-pulse-glow {
-  animation: pulse-glow 1.5s ease-in-out 2;
-}
-`
-
 interface KanbanColumnProps {
   column: typeof kanbanColumn.$inferSelect
   cards: typeof kanbanCard.$inferSelect[]
@@ -33,6 +23,8 @@ interface KanbanColumnProps {
   isNewlyAdded?: boolean
   onDismissHint?: () => void
   isColumnLayoutUnlocked?: boolean
+  firstCardId?: number | null
+  onDismissCardHint?: () => void
 }
 
 export function KanbanColumn({
@@ -49,6 +41,8 @@ export function KanbanColumn({
   isNewlyAdded = false,
   onDismissHint,
   isColumnLayoutUnlocked = false,
+  firstCardId,
+  onDismissCardHint,
 }: KanbanColumnProps) {
   const [showAddCard, setShowAddCard] = useState(false)
   const [newCardName, setNewCardName] = useState('')
@@ -170,9 +164,7 @@ export function KanbanColumn({
   }
 
   return (
-    <>
-      <style>{pulseGlowStyles}</style>
-      <div
+    <div
       ref={setNodeRef}
       style={style}
       className={`group flex h-fit w-[85vw] sm:w-72 flex-shrink-0 flex-col rounded-lg border border-[var(--line)] bg-[var(--header-bg)] ${
@@ -289,6 +281,8 @@ export function KanbanColumn({
               onMoveLeft={onMoveCardLeft}
               onMoveRight={onMoveCardRight}
               onCardUpdated={onColumnUpdated}
+              isFirstCard={card.id === firstCardId}
+              onDismissHint={onDismissCardHint}
             />
           ))}
         </SortableContext>
@@ -344,6 +338,5 @@ export function KanbanColumn({
         )}
       </div>
     </div>
-    </>
   )
 }

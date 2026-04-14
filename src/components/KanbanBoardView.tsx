@@ -10,6 +10,8 @@ import { KanbanCard } from './KanbanCard'
 import { Button } from './ui/button'
 import { getBoard, updateBoard, createColumn, moveCard } from '../lib/kanban.ts'
 
+const FIRST_CARD_HINT_KEY = 'kanban-first-card-hint-shown'
+
 interface KanbanBoardViewProps {
   initialBoard: typeof kanbanBoard.$inferSelect & {
     columns: typeof kanbanColumn.$inferSelect[]
@@ -30,6 +32,13 @@ export function KanbanBoardView({
   const [newlyAddedColumnIds, setNewlyAddedColumnIds] = useState<Set<number>>(new Set())
   const [pendingColumnName, setPendingColumnName] = useState<string | null>(null)
   const [isColumnLayoutUnlocked, setIsColumnLayoutUnlocked] = useState(false)
+  const [firstCardId, setFirstCardId] = useState<number | null>(null)
+  const [hasSeenFirstCardHint, setHasSeenFirstCardHint] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(FIRST_CARD_HINT_KEY) === 'true'
+    }
+    return false
+  })
 
   const refreshBoard = useCallback(async () => {
     try {
@@ -46,6 +55,23 @@ export function KanbanBoardView({
     setBoard(initialBoard)
     setColumns(initialBoard.columns)
   }, [initialBoard])
+
+  // Track when the first card is added to show the hint
+  useEffect(() => {
+    if (hasSeenFirstCardHint || firstCardId !== null) return
+    
+    if (board.cards.length === 1) {
+      setFirstCardId(board.cards[0].id)
+    }
+  }, [board.cards, hasSeenFirstCardHint, firstCardId])
+
+  const dismissFirstCardHint = useCallback(() => {
+    setFirstCardId(null)
+    setHasSeenFirstCardHint(true)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(FIRST_CARD_HINT_KEY, 'true')
+    }
+  }, [])
 
   const handleUpdateBoard = async (boardId: number, name: string) => {
     try {
@@ -294,6 +320,8 @@ export function KanbanBoardView({
                   isNewlyAdded={newlyAddedColumnIds.has(column.id)}
                   onDismissHint={() => handleHintDismiss(column.id)}
                   isColumnLayoutUnlocked={isColumnLayoutUnlocked}
+                  firstCardId={firstCardId}
+                  onDismissCardHint={dismissFirstCardHint}
                 />
               ))}
             </SortableContext>
