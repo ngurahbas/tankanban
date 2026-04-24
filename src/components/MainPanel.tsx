@@ -19,14 +19,19 @@ export default function MainPanel({ onMenuToggle, user }: MainPanelProps) {
 
   // Close menu when clicking outside
   useEffect(() => {
+    let mounted = true
+
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsMenuOpen(false)
+        if (mounted) setIsMenuOpen(false)
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    return () => {
+      mounted = false
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
   }, [])
 
   const handleLogout = async () => {

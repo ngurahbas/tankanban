@@ -85,10 +85,17 @@ export const getBoard = createServerFn({ method: 'GET' })
       throw new ForbiddenError('You do not have access to this board')
     }
 
-    const columns = await db
-      .select()
-      .from(kanbanColumn)
-      .where(eq(kanbanColumn.kanbanBoardId, ctx.data))
+    const [columns, cards] = await Promise.all([
+      db
+        .select()
+        .from(kanbanColumn)
+        .where(eq(kanbanColumn.kanbanBoardId, ctx.data)),
+      db
+        .select()
+        .from(kanbanCard)
+        .where(eq(kanbanCard.kanbanBoardId, ctx.data))
+        .orderBy(desc(kanbanCard.createdAt)),
+    ])
 
     const columnsOrder = board.columnsOrder
       ? board.columnsOrder.split(',').map(Number)
@@ -102,12 +109,6 @@ export const getBoard = createServerFn({ method: 'GET' })
           ...columns.filter(c => !columnsOrder.includes(c.id)),
         ]
       : columns
-
-    const cards = await db
-      .select()
-      .from(kanbanCard)
-      .where(eq(kanbanCard.kanbanBoardId, ctx.data))
-      .orderBy(desc(kanbanCard.createdAt))
 
     return { ...board, columns: sortedColumns, cards }
   })
@@ -253,8 +254,10 @@ export const deleteColumn = createServerFn({ method: 'POST' })
       throw new ForbiddenError('You do not have access to this board')
     }
 
-    await db.delete(kanbanCard).where(eq(kanbanCard.kanbanColumnId, ctx.data))
-    await db.delete(kanbanColumn).where(eq(kanbanColumn.id, ctx.data))
+    await db.transaction(async (tx) => {
+      await tx.delete(kanbanCard).where(eq(kanbanCard.kanbanColumnId, ctx.data))
+      await tx.delete(kanbanColumn).where(eq(kanbanColumn.id, ctx.data))
+    })
     return { success: true }
   })
 

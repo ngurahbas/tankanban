@@ -1,10 +1,9 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute, lazyRouteComponent, redirect } from '@tanstack/react-router'
 import { getBoards, getBoard } from '../lib/kanban.ts'
 import { getCurrentUser } from '../lib/auth.ts'
-import { KanbanBoardPage } from './-kanban-$kanbanId-component'
 
 export const Route = createFileRoute('/kanban/$kanbanId')({
-  component: KanbanBoardPage,
+  component: lazyRouteComponent(() => import('./-kanban-$kanbanId-component'), 'KanbanBoardPage'),
   beforeLoad: async () => {
     const user = await getCurrentUser()
     if (!user) {

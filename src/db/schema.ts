@@ -1,4 +1,4 @@
-import { sqliteTable, integer, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import { sqliteTable, integer, text, uniqueIndex, index } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
 // Enums as const arrays
@@ -75,7 +75,9 @@ export const kanbanColumn = sqliteTable('kanban_column', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(
     sql`(unixepoch())`,
   ),
-})
+}, (table) => ({
+  kanbanBoardIdIdx: index('kanban_column_board_id_idx').on(table.kanbanBoardId),
+}))
 
 export const kanbanCard = sqliteTable('kanban_card', {
   id: integer({ mode: 'number' }).primaryKey({
@@ -92,4 +94,7 @@ export const kanbanCard = sqliteTable('kanban_card', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).default(
     sql`(unixepoch())`,
   ),
-})
+}, (table) => ({
+  kanbanBoardIdIdx: index('kanban_card_board_id_idx').on(table.kanbanBoardId),
+  kanbanColumnIdIdx: index('kanban_card_column_id_idx').on(table.kanbanColumnId),
+}))

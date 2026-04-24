@@ -1,6 +1,5 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { KanbanIndexPage } from './-index-component'
+import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/kanban/')({
-  component: KanbanIndexPage,
+  component: lazyRouteComponent(() => import('./-index-component'), 'KanbanIndexPage'),
 })

@@ -8,9 +8,11 @@ import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 
+const isDev = process.env.NODE_ENV !== 'production'
+
 const config = defineConfig({
   plugins: [
-    devtools(),
+    ...(isDev ? [devtools()] : []),
     nitro({ 
       rollupConfig: { external: [/^@sentry\//] },
     }),

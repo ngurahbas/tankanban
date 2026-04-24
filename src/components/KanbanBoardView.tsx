@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useMemo, memo } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { DndContext, type DragEndEvent, DragOverlay, type DragStartEvent, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, horizontalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
@@ -9,8 +9,12 @@ import { KanbanColumn } from './KanbanColumn'
 import { KanbanCard } from './KanbanCard'
 import { Button } from './ui/button'
 import { getBoard, updateBoard, createColumn, moveCard } from '../lib/kanban.ts'
+import { groupCardsByColumn, mapCardsById } from '../lib/kanban-data'
 
 const FIRST_CARD_HINT_KEY = 'kanban-first-card-hint-shown'
+
+const POINTER_SENSOR_OPTIONS = { activationConstraint: { distance: 8 } }
+const TOUCH_SENSOR_OPTIONS = { activationConstraint: { distance: 8 } }
 
 interface KanbanBoardViewProps {
   initialBoard: typeof kanbanBoard.$inferSelect & {
@@ -19,7 +23,7 @@ interface KanbanBoardViewProps {
   }
 }
 
-export function KanbanBoardView({
+function KanbanBoardViewInner({
   initialBoard,
 }: KanbanBoardViewProps) {
   const navigate = useNavigate()
@@ -39,6 +43,10 @@ export function KanbanBoardView({
     }
     return false
   })
+
+  const cardsByColumn = useMemo(() => groupCardsByColumn(board.cards), [board.cards])
+
+  const cardsById = useMemo(() => mapCardsById(board.cards), [board.cards])
 
   const refreshBoard = useCallback(async () => {
     try {
@@ -73,34 +81,34 @@ export function KanbanBoardView({
     }
   }, [])
 
-  const handleUpdateBoard = async (boardId: number, name: string) => {
+  const handleUpdateBoard = useCallback(async (boardId: number, name: string) => {
     try {
       await updateBoard({ data: { id: boardId, name } })
       await refreshBoard()
     } catch (error) {
       console.error('Failed to update board:', error)
     }
-  }
+  }, [refreshBoard])
 
-  const handleCreateColumn = async (boardId: number, name: string) => {
+  const handleCreateColumn = useCallback(async (boardId: number, name: string) => {
     try {
       await createColumn({ data: { boardId, name } })
       await refreshBoard()
     } catch (error) {
       console.error('Failed to create column:', error)
     }
-  }
+  }, [refreshBoard])
 
-  const handleMoveCard = async (cardId: number, targetColumnId: number) => {
+  const handleMoveCard = useCallback(async (cardId: number, targetColumnId: number) => {
     try {
       await moveCard({ data: { cardId, targetColumnId } })
       await refreshBoard()
     } catch (error) {
       console.error('Failed to move card:', error)
     }
-  }
+  }, [refreshBoard])
 
-  const handleReorderColumns = async (boardId: number, columnIds: number[]) => {
+  const handleReorderColumns = useCallback(async (boardId: number, columnIds: number[]) => {
     try {
       const columnsOrder = columnIds.join(',')
       await updateBoard({ data: { id: boardId, name: board.name, columnsOrder } })
@@ -108,7 +116,7 @@ export function KanbanBoardView({
     } catch (error) {
       console.error('Failed to reorder columns:', error)
     }
-  }
+  }, [board.name, refreshBoard])
 
   useEffect(() => {
     setColumns(board.columns)
@@ -125,31 +133,23 @@ export function KanbanBoardView({
   }, [board.columns, pendingColumnName])
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
+    useSensor(PointerSensor, POINTER_SENSOR_OPTIONS),
+    useSensor(TouchSensor, TOUCH_SENSOR_OPTIONS)
   )
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event
     const activeIdStr = String(active.id)
     if (activeIdStr.startsWith('card-')) {
       const cardId = Number(activeIdStr.replace('card-', ''))
-      const card = board.cards.find(c => c.id === cardId)
+      const card = cardsById.get(cardId)
       if (card) {
         setActiveCard(card)
       }
     }
-  }
+  }, [cardsById])
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event
     setActiveCard(null)
 
@@ -166,14 +166,14 @@ export function KanbanBoardView({
 
     if (isActiveACard && (isOverACard || isOverAColumn)) {
       const cardId = Number(activeIdStr.replace('card-', ''))
-      const activeCard = board.cards.find(c => c.id === cardId)!
+      const activeCard = cardsById.get(cardId)!
 
       let overColumnId: number
       if (isOverAColumn) {
         overColumnId = Number(overIdStr.replace('column-', ''))
       } else {
         const overCardId = Number(overIdStr.replace('card-', ''))
-        const overCard = board.cards.find(c => c.id === overCardId)
+        const overCard = cardsById.get(overCardId)
         if (!overCard) return
         overColumnId = overCard.kanbanColumnId
       }
@@ -194,9 +194,9 @@ export function KanbanBoardView({
         handleReorderColumns(board.id, newColumns.map(c => c.id))
       }
     }
-  }
+  }, [cardsById, columns, handleMoveCard, handleReorderColumns, isColumnLayoutUnlocked, board.id])
 
-  const handleAddColumn = () => {
+  const handleAddColumn = useCallback(() => {
     if (newColumnName.trim()) {
       const name = newColumnName.trim()
       setPendingColumnName(name)
@@ -204,7 +204,7 @@ export function KanbanBoardView({
       setNewColumnName('')
       setShowAddColumn(false)
     }
-  }
+  }, [newColumnName, handleCreateColumn, board.id])
 
   const handleHintDismiss = useCallback((columnId: number) => {
     setNewlyAddedColumnIds(prev => {
@@ -214,8 +214,8 @@ export function KanbanBoardView({
     })
   }, [])
 
-  const handleMoveCardLeft = (cardId: number) => {
-    const card = board.cards.find(c => c.id === cardId)
+  const handleMoveCardLeft = useCallback((cardId: number) => {
+    const card = cardsById.get(cardId)
     if (!card) return
 
     const currentColumnIndex = columns.findIndex(c => c.id === card.kanbanColumnId)
@@ -223,10 +223,10 @@ export function KanbanBoardView({
 
     const targetColumnId = columns[currentColumnIndex - 1].id
     handleMoveCard(cardId, targetColumnId)
-  }
+  }, [cardsById, columns, handleMoveCard])
 
-  const handleMoveCardRight = (cardId: number) => {
-    const card = board.cards.find(c => c.id === cardId)
+  const handleMoveCardRight = useCallback((cardId: number) => {
+    const card = cardsById.get(cardId)
     if (!card) return
 
     const currentColumnIndex = columns.findIndex(c => c.id === card.kanbanColumnId)
@@ -234,32 +234,25 @@ export function KanbanBoardView({
 
     const targetColumnId = columns[currentColumnIndex + 1].id
     handleMoveCard(cardId, targetColumnId)
-  }
+  }, [cardsById, columns, handleMoveCard])
 
-  const handleMoveColumnLeft = (columnId: number) => {
+  const handleMoveColumnLeft = useCallback((columnId: number) => {
     const currentIndex = columns.findIndex(c => c.id === columnId)
     if (currentIndex <= 0) return
 
     const newColumns = arrayMove(columns, currentIndex, currentIndex - 1)
     setColumns(newColumns)
     handleReorderColumns(board.id, newColumns.map(c => c.id))
-  }
+  }, [columns, handleReorderColumns, board.id])
 
-  const handleMoveColumnRight = (columnId: number) => {
+  const handleMoveColumnRight = useCallback((columnId: number) => {
     const currentIndex = columns.findIndex(c => c.id === columnId)
     if (currentIndex >= columns.length - 1) return
 
     const newColumns = arrayMove(columns, currentIndex, currentIndex + 1)
     setColumns(newColumns)
     handleReorderColumns(board.id, newColumns.map(c => c.id))
-  }
-
-  const getColumnCards = useCallback(
-    (columnId: number) => {
-      return board.cards.filter((card) => card.kanbanColumnId === columnId)
-    },
-    [board.cards]
-  )
+  }, [columns, handleReorderColumns, board.id])
 
   return (
     <div className="flex h-full flex-col">
@@ -308,7 +301,7 @@ export function KanbanBoardView({
                 <KanbanColumn
                   key={column.id}
                   column={column}
-                  cards={getColumnCards(column.id)}
+                  cards={cardsByColumn.get(column.id) ?? []}
                   boardId={board.id}
                   columnIndex={index}
                   totalColumns={columns.length}
@@ -395,3 +388,5 @@ export function KanbanBoardView({
     </div>
   )
 }
+
+export const KanbanBoardView = memo(KanbanBoardViewInner)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Sun, Moon } from 'lucide-react'
 
 type ThemeMode = 'auto' | 'light' | 'dark'
@@ -7,14 +7,7 @@ export function ThemeToggle() {
   const [mode, setMode] = useState<ThemeMode>('auto')
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
 
-  useEffect(() => {
-    const stored = localStorage.getItem('theme') as ThemeMode | null
-    const initialMode = stored === 'light' || stored === 'dark' || stored === 'auto' ? stored : 'auto'
-    setMode(initialMode)
-    applyTheme(initialMode)
-  }, [])
-
-  const applyTheme = (newMode: ThemeMode) => {
+  const applyTheme = useCallback((newMode: ThemeMode) => {
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     const resolved = newMode === 'auto' ? (prefersDark ? 'dark' : 'light') : newMode
     
@@ -30,14 +23,21 @@ export function ThemeToggle() {
     } else {
       root.setAttribute('data-theme', newMode)
     }
-  }
+  }, [])
 
-  const handleClick = () => {
+  useEffect(() => {
+    const stored = localStorage.getItem('theme') as ThemeMode | null
+    const initialMode = stored === 'light' || stored === 'dark' || stored === 'auto' ? stored : 'auto'
+    setMode(initialMode)
+    applyTheme(initialMode)
+  }, [applyTheme])
+
+  const handleClick = useCallback(() => {
     const nextMode: ThemeMode = mode === 'auto' ? 'light' : mode === 'light' ? 'dark' : 'auto'
     setMode(nextMode)
     localStorage.setItem('theme', nextMode)
     applyTheme(nextMode)
-  }
+  }, [mode, applyTheme])
 
   const getLabel = () => {
     switch (mode) {

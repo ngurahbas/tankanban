@@ -1,9 +1,8 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute, lazyRouteComponent, redirect } from '@tanstack/react-router'
 import { handleGoogleCallback } from '../../../lib/auth.ts'
-import { GoogleCallbackPage } from './-google-component'
 
 export const Route = createFileRoute('/auth/callback/google')({
-  component: GoogleCallbackPage,
+  component: lazyRouteComponent(() => import('./-google-component'), 'GoogleCallbackPage'),
   loader: async ({ location }) => {
     const searchParams = new URLSearchParams(location.search)
     const code = searchParams.get('code')

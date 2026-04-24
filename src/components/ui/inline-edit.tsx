@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type KeyboardEvent } from 'react'
+import { useState, useRef, useEffect, memo, type KeyboardEvent } from 'react'
 import { Input } from './input'
 import { Textarea } from './textarea'
 
@@ -10,7 +10,7 @@ interface InlineEditProps {
   placeholder?: string
 }
 
-export function InlineEdit({
+function InlineEditInner({
   value,
   onSave,
   multiline = false,
@@ -108,3 +108,5 @@ export function InlineEdit({
     />
   )
 }
+
+export const InlineEdit = memo(InlineEditInner)

@@ -1,7 +1,6 @@
-import { useState, useEffect, useRef } from 'react'
-import { useSortable } from '@dnd-kit/sortable'
+import { useState, useEffect, useRef, useCallback, memo } from 'react'
+import { useSortable, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { Plus, Trash2 } from 'lucide-react'
 import type { kanbanColumn, kanbanCard } from '../db/schema'
 import { InlineEdit } from './ui/inline-edit'
@@ -27,7 +26,7 @@ interface KanbanColumnProps {
   onDismissCardHint?: () => void
 }
 
-export function KanbanColumn({
+function KanbanColumnInner({
   column,
   cards,
   boardId,
@@ -59,32 +58,32 @@ export function KanbanColumn({
     }
   }, [isNewlyAdded, hintPhase])
 
-  const handleUpdateColumn = async (columnId: number, name: string) => {
+  const handleUpdateColumn = useCallback(async (columnId: number, name: string) => {
     try {
       await updateColumn({ data: { id: columnId, name } })
       onColumnUpdated()
     } catch (error) {
       console.error('Failed to update column:', error)
     }
-  }
+  }, [onColumnUpdated])
 
-  const handleDeleteColumn = async (columnId: number) => {
+  const handleDeleteColumn = useCallback(async (columnId: number) => {
     try {
       await deleteColumn({ data: columnId })
       onColumnUpdated()
     } catch (error) {
       console.error('Failed to delete column:', error)
     }
-  }
+  }, [onColumnUpdated])
 
-  const handleCreateCard = async (columnId: number, name: string) => {
+  const handleCreateCard = useCallback(async (columnId: number, name: string) => {
     try {
       await createCard({ data: { columnId, boardId, name } })
       onColumnUpdated()
     } catch (error) {
       console.error('Failed to create card:', error)
     }
-  }
+  }, [boardId, onColumnUpdated])
 
   useEffect(() => {
     if (!isConfirmingDelete) return
@@ -340,3 +339,5 @@ export function KanbanColumn({
     </div>
   )
 }
+
+export const KanbanColumn = memo(KanbanColumnInner)

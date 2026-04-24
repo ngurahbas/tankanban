@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback, memo } from 'react'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Trash2 } from 'lucide-react'
@@ -17,30 +17,30 @@ interface KanbanCardProps {
   onDismissHint?: () => void
 }
 
-export function KanbanCard({ card, columnIndex, totalColumns, onMoveLeft, onMoveRight, onCardUpdated, isFirstCard = false, onDismissHint }: KanbanCardProps) {
+function KanbanCardInner({ card, columnIndex, totalColumns, onMoveLeft, onMoveRight, onCardUpdated, isFirstCard = false, onDismissHint }: KanbanCardProps) {
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false)
   const [hintPhase, setHintPhase] = useState<'entering' | 'visible' | 'exiting' | 'hidden'>(
     isFirstCard ? 'entering' : 'hidden'
   )
   const deleteButtonRef = useRef<HTMLButtonElement>(null)
 
-  const handleUpdate = async (cardId: number, data: { name?: string; description?: string }) => {
+  const handleUpdate = useCallback(async (cardId: number, data: { name?: string; description?: string }) => {
     try {
       await updateCard({ data: { id: cardId, ...data } })
       onCardUpdated()
     } catch (error) {
       console.error('Failed to update card:', error)
     }
-  }
+  }, [onCardUpdated])
 
-  const handleDelete = async (cardId: number) => {
+  const handleDelete = useCallback(async (cardId: number) => {
     try {
       await deleteCard({ data: cardId })
       onCardUpdated()
     } catch (error) {
       console.error('Failed to delete card:', error)
     }
-  }
+  }, [onCardUpdated])
 
   // Sync hintPhase when isFirstCard prop changes
   useEffect(() => {
@@ -235,3 +235,5 @@ export function KanbanCard({ card, columnIndex, totalColumns, onMoveLeft, onMove
     </div>
   )
 }
+
+export const KanbanCard = memo(KanbanCardInner)

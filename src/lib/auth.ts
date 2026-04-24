@@ -6,6 +6,7 @@ import { Google, OAuth2Client, generateCodeVerifier, generateState, CodeChalleng
 import { encodeBase32LowerCase } from '@oslojs/encoding'
 import { getCookie, setCookie, deleteCookie } from '@tanstack/react-start/server'
 import { APP_BASE_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, KEYCLOAK_BASE_URL, KEYCLOAK_CLIENT_ID, KEYCLOAK_CLIENT_SECRET, IS_PRODUCTION } from '../config.ts'
+import { SessionCache } from './session-cache.ts'
 
 const google = new Google(
   GOOGLE_CLIENT_ID,
@@ -28,6 +29,9 @@ const keycloakEndpoints = {
 // Session configuration
 const SESSION_COOKIE_NAME = 'auth_session'
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 7 // 7 days
+const SESSION_CACHE_TTL_MS = 60 * 1000 // 1 minute
+
+const sessionCache = new SessionCache<typeof userAuth.$inferSelect>()
 
 // Generate a random ID using Web Crypto API
 function generateId(length: number = 20): string {
@@ -44,6 +48,11 @@ async function validateSessionInternal(): Promise<typeof userAuth.$inferSelect |
     return null
   }
 
+  const cached = sessionCache.get(sessionId)
+  if (cached) {
+    return cached
+  }
+
   const [sessionData] = await db
     .select()
     .from(session)
@@ -51,18 +60,18 @@ async function validateSessionInternal(): Promise<typeof userAuth.$inferSelect |
     .limit(1)
 
   if (!sessionData) {
+    sessionCache.delete(sessionId)
     deleteCookie(SESSION_COOKIE_NAME)
     return null
   }
 
-  // Check if session is expired
   if (sessionData.expiresAt.getTime() < Date.now()) {
+    sessionCache.delete(sessionId)
     await db.delete(session).where(eq(session.id, sessionId))
     deleteCookie(SESSION_COOKIE_NAME)
     return null
   }
 
-  // Get user data
   const [user] = await db
     .select()
     .from(userAuth)
@@ -70,9 +79,12 @@ async function validateSessionInternal(): Promise<typeof userAuth.$inferSelect |
     .limit(1)
 
   if (!user) {
+    sessionCache.delete(sessionId)
     deleteCookie(SESSION_COOKIE_NAME)
     return null
   }
+
+  sessionCache.set(sessionId, user, SESSION_CACHE_TTL_MS)
 
   return user
 }
@@ -365,6 +377,7 @@ export const logout = createServerFn({ method: 'POST' })
     const sessionId = getCookie(SESSION_COOKIE_NAME)
 
     if (sessionId) {
+      sessionCache.delete(sessionId)
       await db.delete(session).where(eq(session.id, sessionId))
       deleteCookie(SESSION_COOKIE_NAME)
     }

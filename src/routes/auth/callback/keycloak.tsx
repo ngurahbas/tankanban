@@ -1,9 +1,8 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute, lazyRouteComponent, redirect } from '@tanstack/react-router'
 import { handleKeycloakCallback } from '../../../lib/auth.ts'
-import { KeycloakCallbackPage } from './-keycloak-component'
 
 export const Route = createFileRoute('/auth/callback/keycloak')({
-  component: KeycloakCallbackPage,
+  component: lazyRouteComponent(() => import('./-keycloak-component'), 'KeycloakCallbackPage'),
   loader: async ({ location }) => {
     const searchParams = new URLSearchParams(location.search)
     const code = searchParams.get('code')
