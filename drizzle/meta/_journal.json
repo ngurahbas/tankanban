@@ -12,15 +12,8 @@
     {
       "idx": 1,
       "version": "6",
-      "when": 1773164048966,
-      "tag": "0001_loud_kronos",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
       "when": 1776773806163,
-      "tag": "0002_quick_supreme_intelligence",
+      "tag": "0001_quick_supreme_intelligence",
       "breakpoints": true
     }
   ]

@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "bunx --bun vite dev --port 3000",
     "build": "bunx --bun vite build",
+    "postbuild": "bun build scripts/migrate.ts --target=bun --outfile .output/migrate.mjs && cp -r drizzle .output/drizzle",
     "preview": "bunx --bun vite preview",
     "test": "vitest run",
     "test:e2e": "playwright test",
