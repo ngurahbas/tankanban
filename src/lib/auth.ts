@@ -8,22 +8,28 @@ import { getCookie, setCookie, deleteCookie } from '@tanstack/react-start/server
 import { APP_BASE_URL, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, KEYCLOAK_BASE_URL, KEYCLOAK_CLIENT_ID, KEYCLOAK_CLIENT_SECRET, IS_PRODUCTION } from '../config.ts'
 import { SessionCache } from './session-cache.ts'
 
-const google = new Google(
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  `${APP_BASE_URL}/auth/callback/google`
-)
+let google: Google | null = null
+if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+  google = new Google(
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    `${APP_BASE_URL}/auth/callback/google`
+  )
+}
 
-const keycloak = new OAuth2Client(
-  KEYCLOAK_CLIENT_ID,
-  KEYCLOAK_CLIENT_SECRET,
-  `${APP_BASE_URL}/auth/callback/keycloak`
-)
-
-const keycloakEndpoints = {
-  authorize: `${KEYCLOAK_BASE_URL}/protocol/openid-connect/auth`,
-  token: `${KEYCLOAK_BASE_URL}/protocol/openid-connect/token`,
-  userinfo: `${KEYCLOAK_BASE_URL}/protocol/openid-connect/userinfo`,
+let keycloak: OAuth2Client | null = null
+let keycloakEndpoints: { authorize: string; token: string; userinfo: string } | null = null
+if (KEYCLOAK_BASE_URL && KEYCLOAK_CLIENT_ID && KEYCLOAK_CLIENT_SECRET) {
+  keycloak = new OAuth2Client(
+    KEYCLOAK_CLIENT_ID,
+    KEYCLOAK_CLIENT_SECRET,
+    `${APP_BASE_URL}/auth/callback/keycloak`
+  )
+  keycloakEndpoints = {
+    authorize: `${KEYCLOAK_BASE_URL}/protocol/openid-connect/auth`,
+    token: `${KEYCLOAK_BASE_URL}/protocol/openid-connect/token`,
+    userinfo: `${KEYCLOAK_BASE_URL}/protocol/openid-connect/userinfo`,
+  }
 }
 
 // Session configuration
@@ -98,6 +104,9 @@ export const validateSession = createServerFn({ method: 'GET' })
 // Generate Google OAuth authorization URL
 export const getGoogleAuthUrl = createServerFn({ method: 'GET' })
   .handler(async () => {
+    if (!google) {
+      throw new Error('Google OAuth is not configured')
+    }
     const state = generateId(15)
     const codeVerifier = generateId(32)
     const url = await google.createAuthorizationURL(state, codeVerifier, ['openid', 'email', 'profile'])
@@ -123,6 +132,9 @@ export const getGoogleAuthUrl = createServerFn({ method: 'GET' })
 
 export const getKeycloakAuthUrl = createServerFn({ method: 'GET' })
   .handler(async () => {
+    if (!keycloak || !keycloakEndpoints) {
+      throw new Error('Keycloak OAuth is not configured')
+    }
     const state = generateState()
     const codeVerifier = generateCodeVerifier()
     const url = keycloak.createAuthorizationURLWithPKCE(
@@ -156,6 +168,9 @@ export const getKeycloakAuthUrl = createServerFn({ method: 'GET' })
 export const handleGoogleCallback = createServerFn({ method: 'GET' })
   .inputValidator((data: { code: string; state: string }) => data)
   .handler(async (ctx) => {
+    if (!google) {
+      throw new Error('Google OAuth is not configured')
+    }
     try {
       const { code, state } = ctx.data
 
@@ -268,6 +283,9 @@ export const handleGoogleCallback = createServerFn({ method: 'GET' })
 export const handleKeycloakCallback = createServerFn({ method: 'GET' })
   .inputValidator((data: { code: string; state: string }) => data)
   .handler(async (ctx) => {
+    if (!keycloak || !keycloakEndpoints) {
+      throw new Error('Keycloak OAuth is not configured')
+    }
     try {
       const { code, state } = ctx.data
 

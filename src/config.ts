@@ -1,7 +1,8 @@
 export const DATABASE_URL = process.env.DATABASE_URL!
 
-export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID!
-export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET!
+export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
+export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET
+
 
 export const APP_BASE_URL = process.env.APP_BASE_URL || 'http://localhost:3000'
 
@@ -16,6 +17,14 @@ export const CI = process.env.CI
 
 function isSet(value: string | undefined): boolean {
   return value !== undefined && value.length > 0
+}
+
+export function isGoogleConfigured(): boolean {
+  return isSet(GOOGLE_CLIENT_ID)
+}
+
+export function isKeycloakConfigured(): boolean {
+  return isSet(KEYCLOAK_BASE_URL) && isSet(KEYCLOAK_CLIENT_ID)
 }
 
 if (typeof window === 'undefined') {
