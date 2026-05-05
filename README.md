@@ -44,7 +44,7 @@ cp .env.example .env.local
 
 ```bash
 # Start Keycloak (OAuth provider)
-docker-compose up -d keycloak
+docker compose up -d keycloak
 
 # Start development server (http://localhost:3000)
 bun run dev
