@@ -136,4 +136,4 @@ This creates the `.output/` directory containing:
 
 ## License
 
-[Add your license here]
+MIT — see [LICENSE](./LICENSE) for details.
