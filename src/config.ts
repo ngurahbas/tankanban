@@ -13,3 +13,21 @@ export const NODE_ENV = process.env.NODE_ENV
 export const IS_PRODUCTION = process.env.NODE_ENV === 'production'
 
 export const CI = process.env.CI
+
+function isSet(value: string | undefined): boolean {
+  return value !== undefined && value.length > 0
+}
+
+if (typeof window === 'undefined') {
+  console.log('[CONFIG] App starting...')
+  console.log(`[CONFIG] APP_BASE_URL: ${APP_BASE_URL}`)
+  console.log(`[CONFIG] NODE_ENV: ${NODE_ENV ?? 'undefined'}`)
+  console.log(`[CONFIG] IS_PRODUCTION: ${IS_PRODUCTION}`)
+  console.log(`[CONFIG] KEYCLOAK_BASE_URL: ${KEYCLOAK_BASE_URL}`)
+  console.log(`[CONFIG] KEYCLOAK_CLIENT_ID: ${isSet(KEYCLOAK_CLIENT_ID) ? '✅ Set' : '❌ Not set'}`)
+  console.log(`[CONFIG] DATABASE_URL: ${isSet(DATABASE_URL) ? '✅ Set' : '❌ Not set'}`)
+  console.log(`[CONFIG] GOOGLE_CLIENT_ID: ${isSet(GOOGLE_CLIENT_ID) ? '✅ Set' : '❌ Not set'}`)
+  console.log(`[CONFIG] GOOGLE_CLIENT_SECRET: ${isSet(GOOGLE_CLIENT_SECRET) ? '✅ Set' : '❌ Not set'}`)
+  console.log(`[CONFIG] KEYCLOAK_CLIENT_SECRET: ${isSet(KEYCLOAK_CLIENT_SECRET) ? '✅ Set' : '❌ Not set'}`)
+  console.log(`[CONFIG] CI: ${CI ?? 'undefined'}`)
+}
