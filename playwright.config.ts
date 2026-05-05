@@ -8,7 +8,7 @@ export default defineConfig({
   retries: CI ? 2 : 0,
   workers: CI ? 1 : undefined,
   reporter: 'list',
-  
+
   use: {
     baseURL: 'http://localhost:3333',
     trace: 'on-first-retry',
@@ -26,7 +26,7 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.auth/user.json',
       },
@@ -40,14 +40,4 @@ export default defineConfig({
       dependencies: ['setup'],
     },
   ],
-
-  webServer: {
-    command: 'APP_BASE_URL=http://localhost:3333 KEYCLOAK_BASE_URL=http://localhost:8080/realms/tankanban KEYCLOAK_CLIENT_ID=tankanban KEYCLOAK_CLIENT_SECRET=tankanban-client-secret-12345 bun run dev -- --port 3333',
-    url: 'http://localhost:3333',
-    reuseExistingServer: !CI,
-    timeout: 30000,
-  },
-
-  globalSetup: './e2e/global-setup.ts',
-  globalTeardown: './e2e/global-teardown.ts',
 })
