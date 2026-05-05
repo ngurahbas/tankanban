@@ -1,4 +1,13 @@
 services:
+  app:
+    build: .
+    container_name: tankanban-app
+    network_mode: "host"
+    environment:
+      DATABASE_URL: /data/tankanban.db
+    volumes:
+      - app-data:/data
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.1
     container_name: tankanban-keycloak
@@ -18,3 +27,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+
+volumes:
+  app-data:
