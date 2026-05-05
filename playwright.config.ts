@@ -10,7 +10,7 @@ export default defineConfig({
   reporter: 'list',
 
   use: {
-    baseURL: 'http://localhost:3333',
+    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
     actionTimeout: 5000,
     navigationTimeout: 5000,

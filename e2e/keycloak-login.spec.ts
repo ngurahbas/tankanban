@@ -17,7 +17,7 @@ test.describe('Keycloak Authentication', () => {
     
     await page.getByRole('button', { name: 'Sign In' }).click()
     
-    await page.waitForURL(/localhost:3333/, { timeout: 10000 })
+    await page.waitForURL(/localhost:3000/, { timeout: 10000 })
     
     await expect(page).toHaveURL(/\/kanban/)
   })
