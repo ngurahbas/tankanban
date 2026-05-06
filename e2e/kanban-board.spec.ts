@@ -34,11 +34,11 @@ test.describe('Kanban Board View', () => {
     await addCardButton.click()
     
     const cardNameInput = page.getByPlaceholder('Card name')
-    await cardNameInput.waitFor({ state: 'visible', timeout: 3000 })
+    await cardNameInput.waitFor({ state: 'visible', timeout: 1000 })
     await cardNameInput.fill('First Task')
     await cardNameInput.press('Enter')
     
-    await expect(page.locator('text="First Task"').first()).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text="First Task"').first()).toBeVisible({ timeout: 1000 })
   })
 
   test('should edit board title inline', async ({ page }) => {
@@ -63,7 +63,7 @@ test.describe('Kanban Board View', () => {
     await addCardButton.click()
     
     const cardNameInput = page.getByPlaceholder('Card name')
-    await cardNameInput.waitFor({ state: 'visible', timeout: 3000 })
+    await cardNameInput.waitFor({ state: 'visible', timeout: 1000 })
     await cardNameInput.fill('Card with Description')
     await cardNameInput.press('Enter')
     

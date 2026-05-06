@@ -43,7 +43,7 @@ test.describe('Side Panel', () => {
       }
     })
     
-    await expect(page.getByRole('button', { name: boardName })).toBeVisible({ timeout: 3000 })
+    await expect(page.getByRole('button', { name: boardName })).toBeVisible({ timeout: 1000 })
     await expect(page.getByText('No boards yet')).not.toBeVisible()
     
     await verifyInitialColumns(page)

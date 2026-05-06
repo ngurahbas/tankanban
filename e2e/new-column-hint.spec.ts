@@ -15,21 +15,21 @@ test.describe('New Column Hint', () => {
     
     // Add a new column
     const addColumnButton = page.getByRole('button', { name: 'Add Column' })
-    await addColumnButton.waitFor({ state: 'visible', timeout: 5000 })
+    await addColumnButton.waitFor({ state: 'visible', timeout: 1000 })
     await addColumnButton.click()
     
     // Fill in column name and submit
     const columnNameInput = page.getByPlaceholder('Column name')
-    await columnNameInput.waitFor({ state: 'visible', timeout: 3000 })
+    await columnNameInput.waitFor({ state: 'visible', timeout: 1000 })
     await columnNameInput.fill('TestColumn')
     await columnNameInput.press('Enter')
     
     // Wait for the column to appear
-    await expect(page.locator('text="TestColumn"').first()).toBeVisible({ timeout: 5000 })
+    await expect(page.locator('text="TestColumn"').first()).toBeVisible({ timeout: 1000 })
     
     // Wait 500ms for the hint to transition from entering (opacity-0) to visible (opacity-100)
     // The entering phase is 300ms, so we wait a bit longer to ensure it's fully visible
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(1000)
     
     // Now check the hint is visible
     const hintElement = page.getByText('Drag handle to move').first()

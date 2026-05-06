@@ -11,13 +11,13 @@ setup('authenticate with Keycloak', async ({ page }) => {
   
   await page.waitForLoadState('networkidle')
   
-  await expect(page.locator('#username')).toBeVisible({ timeout: 5000 })
+  await expect(page.locator('#username')).toBeVisible({ timeout: 1000 })
   await page.locator('#username').fill('testuser')
   await page.locator('#password').fill('testpassword')
   
   await page.locator('#kc-login').click()
   
-  await page.waitForURL('**/kanban', { timeout: 10000 })
+  await page.waitForURL('**/kanban', { timeout: 1000 })
   
   await expect(page.getByRole('button', { name: 'Toggle menu' })).toBeVisible()
   

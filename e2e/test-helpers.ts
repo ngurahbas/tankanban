@@ -16,45 +16,45 @@ export async function unlockLayout(page: Page): Promise<void> {
   
   // Click the lock button to unlock
   const lockButton = page.getByRole('button', { name: /Locked/ })
-  await lockButton.waitFor({ state: 'visible', timeout: 5000 })
+  await lockButton.waitFor({ state: 'visible', timeout: 1000 })
   await lockButton.click()
   
   // Wait for unlock state
-  await unlockButton.waitFor({ state: 'visible', timeout: 5000 })
-  await page.waitForTimeout(300)
+  await unlockButton.waitFor({ state: 'visible', timeout: 1000 })
+  await page.waitForTimeout(1000)
 }
 
 export async function openSidePanel(page: Page): Promise<void> {
   await page.setViewportSize({ width: 1400, height: 1200 })
   const menuButton = page.getByRole('button', { name: 'Toggle menu' })
-  await menuButton.waitFor({ state: 'visible', timeout: 10000 })
+  await menuButton.waitFor({ state: 'visible', timeout: 1000 })
   await menuButton.click()
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(1000)
   
-  await expect(page.getByText('Kanban Boards')).toBeVisible({ timeout: 10000 })
+  await expect(page.getByText('Kanban Boards')).toBeVisible({ timeout: 1000 })
 }
 
 export async function createBoard(page: Page, boardName: string): Promise<string> {
   const uniqueBoardName = uniqueName(boardName)
   await openSidePanel(page)
   
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(1000)
   
   const addButton = page.locator('button').filter({ hasText: /^Add$/ })
-  await addButton.waitFor({ state: 'attached', timeout: 5000 })
+  await addButton.waitFor({ state: 'attached', timeout: 1000 })
   await addButton.dispatchEvent('click')
   
-  await page.waitForTimeout(300)
+  await page.waitForTimeout(1000)
   
   const boardNameInput = page.getByPlaceholder('New board name')
-  await boardNameInput.waitFor({ state: 'visible', timeout: 5000 })
+  await boardNameInput.waitFor({ state: 'visible', timeout: 1000 })
   await boardNameInput.fill(uniqueBoardName)
   
   const createButton = page.locator('button').filter({ hasText: 'Create' })
-  await createButton.waitFor({ state: 'attached', timeout: 5000 })
+  await createButton.waitFor({ state: 'attached', timeout: 1000 })
   await createButton.dispatchEvent('click')
   
-  await expect(page).toHaveURL(/\/kanban\/\d+/, { timeout: 10000 })
+  await expect(page).toHaveURL(/\/kanban\/\d+/, { timeout: 1000 })
   await page.waitForLoadState('networkidle')
   
   return uniqueBoardName
@@ -67,16 +67,16 @@ export async function createColumn(page: Page, columnName: string): Promise<stri
   await unlockLayout(page)
   
   const addColumnButton = page.getByRole('button', { name: 'Add Column' })
-  await addColumnButton.waitFor({ state: 'visible', timeout: 5000 })
+  await addColumnButton.waitFor({ state: 'visible', timeout: 1000 })
   await addColumnButton.click()
   
   const columnNameInput = page.getByPlaceholder('Column name')
-  await columnNameInput.waitFor({ state: 'visible', timeout: 3000 })
+  await columnNameInput.waitFor({ state: 'visible', timeout: 1000 })
   await columnNameInput.fill(uniqueColumnName)
   await columnNameInput.press('Enter')
   
-  await page.waitForTimeout(500)
-  await expect(page.locator(`text="${uniqueColumnName}"`).first()).toBeVisible({ timeout: 5000 })
+  await page.waitForTimeout(1000)
+  await expect(page.locator(`text="${uniqueColumnName}"`).first()).toBeVisible({ timeout: 1000 })
   
   return uniqueColumnName
 }
@@ -84,16 +84,16 @@ export async function createColumn(page: Page, columnName: string): Promise<stri
 export async function createCard(page: Page, cardName: string): Promise<string> {
   const uniqueCardName = uniqueName(cardName)
   const addCardButton = page.getByRole('button', { name: 'Add Card' }).first()
-  await addCardButton.waitFor({ state: 'visible', timeout: 3000 })
+  await addCardButton.waitFor({ state: 'visible', timeout: 1000 })
   await addCardButton.click()
   
   const cardNameInput = page.getByPlaceholder('Card name')
-  await cardNameInput.waitFor({ state: 'visible', timeout: 3000 })
+  await cardNameInput.waitFor({ state: 'visible', timeout: 1000 })
   await cardNameInput.fill(uniqueCardName)
   await cardNameInput.press('Enter')
   
-  await page.waitForTimeout(500)
-  await expect(page.locator(`text="${uniqueCardName}"`).first()).toBeVisible({ timeout: 5000 })
+  await page.waitForTimeout(1000)
+  await expect(page.locator(`text="${uniqueCardName}"`).first()).toBeVisible({ timeout: 1000 })
   
   return uniqueCardName
 }
@@ -101,7 +101,7 @@ export async function createCard(page: Page, cardName: string): Promise<string> 
 export async function verifyInitialColumns(page: Page): Promise<void> {
   // Use more specific selector - column headers are within flex-shrink-0 columns
   const columns = page.locator('[class*="flex-shrink-0"]')
-  await expect(columns.filter({ hasText: 'To Do' })).toBeVisible({ timeout: 5000 })
+  await expect(columns.filter({ hasText: 'To Do' })).toBeVisible({ timeout: 1000 })
   await expect(columns.filter({ hasText: 'In Progress' })).toBeVisible()
   await expect(columns.filter({ hasText: 'Done' })).toBeVisible()
   
@@ -175,7 +175,7 @@ export async function dragCardToColumn(page: Page, cardName: string, targetColum
   await page.mouse.up()
   
   // Wait for state to settle
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(1000)
 }
 
 export async function dragColumnToPosition(page: Page, columnName: string, targetColumnName: string) {
@@ -209,7 +209,7 @@ export async function dragColumnToPosition(page: Page, columnName: string, targe
   await page.mouse.up()
   
   // Wait for state to settle
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(1000)
 }
 
 export async function expectCardInColumn(page: Page, cardName: string, columnName: string) {
