@@ -36,8 +36,8 @@ TanKanban is a full-stack task management application that demonstrates the use 
 bun install
 
 # Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your configuration
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
 ### Development
@@ -99,13 +99,13 @@ This creates the `.output/` directory containing:
 
 3. **Run database migrations** (uses only files in `.output/`):
    ```bash
-   bun run .output/migrate.mjs
+   bun .output/migrate.mjs
    ```
    Expected output: `✅ Migrations completed successfully`
 
 4. **Start the production server**:
    ```bash
-   bun run .output/server/index.mjs
+   bun .output/server/index.mjs
    ```
 
 ### Production Files Structure
