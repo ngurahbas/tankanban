@@ -39,13 +39,7 @@ export default defineConfig({
         viewport: { width: 1920, height: 1080 },
         storageState: 'playwright/.auth/user.json',
       },
-      dependencies: ['setup'],
-      testIgnore: ['**/keycloak-login.spec.ts'],
-    },
-    {
-      name: 'auth-tests',
-      testMatch: ['**/keycloak-login.spec.ts'],
-      use: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 } },
+      dependencies: ['setup']
     },
   ],
 })
