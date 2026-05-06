@@ -25,7 +25,7 @@ export async function unlockLayout(page: Page): Promise<void> {
 }
 
 export async function openSidePanel(page: Page): Promise<void> {
-  await page.setViewportSize({ width: 1400, height: 1200 })
+  await page.setViewportSize({ width: 1920, height: 1080 })
   const menuButton = page.getByRole('button', { name: 'Toggle menu' })
   await menuButton.waitFor({ state: 'visible', timeout: 1000 })
   await menuButton.click()
