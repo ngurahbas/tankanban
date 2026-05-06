@@ -26,45 +26,18 @@ TanKanban is a full-stack task management application that demonstrates the use 
 
 ### Prerequisites
 
-- [Bun](https://bun.sh) installed
-- [Docker](https://docker.com) (for Keycloak authentication service)
+- [Docker](https://docker.com)
 
-### Installation
-
-```bash
-# Install dependencies
-bun install
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-### Development
+### Run
 
 ```bash
-# Start Keycloak (OAuth provider)
-docker compose up -d keycloak
-
-# Start development server (http://localhost:3000)
-bun run dev
+docker compose up -d
 ```
 
-### Database Setup
+The app will be available at [http://localhost:3000](http://localhost:3000) and Keycloak at [http://localhost:8080](http://localhost:8080).
 
-```bash
-# Generate migration files from schema changes
-bun run db:generate
-
-# Apply migrations to development database
-bun run db:migrate
-
-# Or push schema changes directly (no migration history)
-bun run db:push
-
-# Open Drizzle Studio (GUI for database)
-bun run db:studio
-```
+> [!NOTE]
+> Environment variables have sensible defaults in `src/config.ts` — set them via `environment:` in `docker-compose.yml` or a `.env` file if you need custom values.
 
 ## Production Guide
 
