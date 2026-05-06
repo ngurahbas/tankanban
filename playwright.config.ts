@@ -1,5 +1,6 @@
 import { defineConfig, devices } from '@playwright/test'
-import { CI } from './src/config.ts'
+
+const CI = process.env.CI
 
 export default defineConfig({
   testDir: './e2e',
