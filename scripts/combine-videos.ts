@@ -126,7 +126,7 @@ async function main() {
 
   // Create a temp file for ffmpeg filter to avoid shell escaping issues
   const filterFile = '/tmp/ffmpeg-filter.txt'
-  const filterComplex = `[0:v]subtitles='${srtFile}':force_style='FontSize=24\\,PrimaryColour=&Hffffff\\,OutlineColour=&H000000\\,Outline=2'[v]`
+  const filterComplex = `[0:v]subtitles='${srtFile}':force_style='FontSize=16\\,PrimaryColour=&Hffffff\\,OutlineColour=&H000000\\,Outline=1\\,Alignment=2\\,MarginV=20'[v]`
   await writeFile(filterFile, filterComplex)
 
   const ffmpegCmd = [
