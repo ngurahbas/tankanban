@@ -39,6 +39,38 @@ The app will be available at [http://localhost:3000](http://localhost:3000) and 
 > [!NOTE]
 > Environment variables have sensible defaults in `src/config.ts` — set them via `environment:` in `docker-compose.yml` or a `.env` file if you need custom values.
 
+## Development Setup
+
+### Prerequisites
+
+- [Bun](https://bun.sh)
+- [Docker](https://docker.com) (for Keycloak auth)
+
+### Getting Started
+
+```bash
+bun install
+cp .env.example .env  # defaults work out of the box
+```
+
+### Run
+
+```bash
+docker compose up -d keycloak
+bun run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). The Keycloak admin console is at [http://localhost:8080](http://localhost:8080) (admin / admin).
+
+### Database
+
+```bash
+bun run db:generate  # create migration files from schema changes
+bun run db:migrate   # apply migrations
+bun run db:push      # push schema directly (no migration file)
+bun run db:studio    # open Drizzle Studio GUI
+```
+
 ## Production Guide
 
 ### Building for Production
